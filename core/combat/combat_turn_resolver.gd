@@ -3,6 +3,7 @@ extends RefCounted
 
 const CombatTurnResultScript = preload("res://core/combat/combat_turn_result.gd")
 const CombatCalculatorScript = preload("res://core/combat/combat_calculator.gd")
+const AttackTypeScript = preload("res://core/combat/attack_type.gd")
 
 var _calculator := CombatCalculatorScript.new()
 
@@ -16,6 +17,16 @@ func resolve(board_result: RefCounted, battle: RefCounted, enemy_action: Callabl
 	result.phase_order.append("damage")
 	result.physical_damage_applied = battle.enemy.take_damage(calculated.physical_damage)
 	result.magic_damage_applied = battle.enemy.take_damage(calculated.magic_damage)
+	var attack_type := AttackTypeScript.Kind.NONE
+	if not board_result.physical_components.is_empty():
+		attack_type = AttackTypeScript.Kind.PHYSICAL
+	elif not board_result.magic_components.is_empty():
+		attack_type = AttackTypeScript.Kind.MAGIC
+	var reveal: RefCounted = battle.enemy.reveal_weakness_from_attack(attack_type)
+	result.weakness_revealed = reveal.revealed
+	result.weakness_hit = reveal.hit_weakness
+	result.weakness_inferred = reveal.inferred
+	result.weakness_type = reveal.weakness_type
 
 	result.phase_order.append("healing")
 	result.healing_applied = battle.hero.heal(calculated.healing)

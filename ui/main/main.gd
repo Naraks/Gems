@@ -7,6 +7,9 @@ const BoardTurnControllerScript = preload("res://core/board/board_turn_controlle
 const BattleStateScript = preload("res://core/combat/battle_state.gd")
 const CombatTurnResolverScript = preload("res://core/combat/combat_turn_resolver.gd")
 const EnemyStateScript = preload("res://core/combat/enemy_state.gd")
+const EnemyIntentScript = preload("res://core/combat/enemy_intent.gd")
+const EnemyIntentExecutorScript = preload("res://core/combat/enemy_intent_executor.gd")
+const AttackTypeScript = preload("res://core/combat/attack_type.gd")
 const HeroStateScript = preload("res://core/combat/hero_state.gd")
 const SWAP_PREVIEW_SECONDS := 0.12
 
@@ -22,6 +25,7 @@ var _board_shuffler: RefCounted
 var _turn_controller: RefCounted
 var _battle: RefCounted
 var _combat_resolver := CombatTurnResolverScript.new()
+var _intent_executor := EnemyIntentExecutorScript.new()
 
 
 func _ready() -> void:
@@ -32,6 +36,9 @@ func _ready() -> void:
 	_board_resolver = BoardResolverScript.new(rules)
 	_board_shuffler = BoardShufflerScript.new()
 	_turn_controller = BoardTurnControllerScript.new(_board, rules.minimum_match_size)
+	var enemy = EnemyStateScript.new(rules.enemy_base_health)
+	enemy.configure_affinities(AttackTypeScript.Kind.PHYSICAL, AttackTypeScript.Kind.NONE, rules.weakness_multiplier, rules.boss_resistance_multiplier)
+	enemy.current_intent = EnemyIntentScript.new(EnemyIntentScript.Kind.ATTACK, rules.enemy_base_damage)
 	_battle = BattleStateScript.new(
 		HeroStateScript.new(
 			rules.hero_max_health,
@@ -41,7 +48,7 @@ func _ready() -> void:
 			rules.hero_healing_power,
 			rules.hero_coin_multiplier,
 		),
-		EnemyStateScript.new(rules.enemy_base_health),
+		enemy,
 	)
 	board_view.setup(_board)
 	board_view.swap_requested.connect(_on_swap_requested)
@@ -85,14 +92,16 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 
 
 func _perform_enemy_action(battle: RefCounted) -> void:
-	battle.hero.take_damage(rules.enemy_base_damage)
+	_intent_executor.execute(battle.enemy.current_intent, battle)
 
 
 func _update_combat_status() -> void:
-	combat_status_label.text = "Герой: %d/%d HP · Монеты: %d                         Враг: %d/%d HP" % [
+	combat_status_label.text = "Герой: %d/%d HP · Монеты: %d          Враг: %d/%d HP · Слабость: %s · Намерение: %s" % [
 		_battle.hero.health,
 		_battle.hero.max_health,
 		_battle.hero.coins,
 		_battle.enemy.health,
 		_battle.enemy.max_health,
+		_battle.enemy.weakness_display(),
+		_battle.enemy.current_intent.display_text(),
 	]
