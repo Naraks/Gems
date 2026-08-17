@@ -5,6 +5,7 @@ const BIOMES := [&"ruins", &"mines", &"tower"]
 const BOSS_PATHS := {
 	10: "res://data/enemies/stone_guardian.tres",
 	20: "res://data/enemies/fire_golem.tres",
+	30: "res://data/enemies/void_archmage.tres",
 }
 const PATHS := {
 	&"ruins": [

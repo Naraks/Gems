@@ -58,6 +58,20 @@ func swap(first: Vector2i, second: Vector2i) -> void:
 	_cells[second_index] = temporary
 
 
+func rotate_clockwise() -> void:
+	var old_size := size
+	var rotated := PackedInt32Array()
+	rotated.resize(cell_count())
+	var new_size := Vector2i(old_size.y, old_size.x)
+	for y in old_size.y:
+		for x in old_size.x:
+			var new_x: int = old_size.y - 1 - y
+			var new_y: int = x
+			rotated[new_y * new_size.x + new_x] = _cells[y * old_size.x + x]
+	size = new_size
+	_cells = rotated
+
+
 func has_any_match(minimum_size: int = 3) -> bool:
 	for y in size.y:
 		for x in size.x:

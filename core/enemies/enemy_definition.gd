@@ -1,7 +1,7 @@
 class_name EnemyDefinition
 extends Resource
 
-enum SpecialBehavior { NONE, ADD_BLOCKERS, SHIELD_LAST_ATTACK, FIRE_HEART_STRIKE }
+enum SpecialBehavior { NONE, ADD_BLOCKERS, SHIELD_LAST_ATTACK, FIRE_HEART_STRIKE, VOID_ARCHMAGE }
 
 @export var id: StringName
 @export var display_name: String
@@ -13,7 +13,9 @@ enum SpecialBehavior { NONE, ADD_BLOCKERS, SHIELD_LAST_ATTACK, FIRE_HEART_STRIKE
 @export var is_boss := false
 @export var intent_cycle: PackedInt32Array = []
 @export var intent_multipliers: PackedFloat32Array = []
+@export var attack_title := ""
 @export var special_title := "Особое действие"
+@export var alternate_special_title := ""
 @export_range(0, 12, 1) var special_value := 0
 @export var special_behavior := SpecialBehavior.NONE
 @export_range(0.1, 5.0, 0.05) var health_multiplier := 1.0

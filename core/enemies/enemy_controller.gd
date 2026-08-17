@@ -36,13 +36,17 @@ func _build_intent() -> RefCounted:
 		EnemyIntentScript.Kind.ATTACK:
 			if enemy.definition.archetype == "Берсерк" and float(enemy.health) / float(enemy.max_health) <= enemy.definition.berserk_health_threshold:
 				multiplier *= enemy.definition.berserk_damage_multiplier
-			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier))
+			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), enemy.definition.attack_title)
 		EnemyIntentScript.Kind.HEAL:
 			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), "Лечение")
 		EnemyIntentScript.Kind.SPECIAL:
 			if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.FIRE_HEART_STRIKE:
 				return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), enemy.definition.special_title, _perform_special)
-			return EnemyIntentScript.new(kind, enemy.definition.special_value, enemy.definition.special_title, _perform_special)
+			var title: String = enemy.definition.special_title
+			if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.VOID_ARCHMAGE and turn_index == 3:
+				title = enemy.definition.alternate_special_title
+			var show_value: bool = enemy.definition.special_behavior != EnemyDefinitionScript.SpecialBehavior.VOID_ARCHMAGE
+			return EnemyIntentScript.new(kind, enemy.definition.special_value, title, _perform_special, show_value)
 		EnemyIntentScript.Kind.PREPARE:
 			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), enemy.definition.special_title)
 	return EnemyIntentScript.new(EnemyIntentScript.Kind.ATTACK, enemy.base_damage)
@@ -53,6 +57,12 @@ func _perform_special(battle: RefCounted, amount: int) -> int:
 		var damage_dealt: int = battle.hero.take_damage(amount)
 		_replace_tiles_with_blockers(TileTypeScript.Value.HEART, enemy.definition.special_value)
 		return damage_dealt
+	if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.VOID_ARCHMAGE:
+		if turn_index == 1:
+			board.rotate_clockwise()
+		else:
+			enemy.swap_affinities()
+		return 0
 	if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.SHIELD_LAST_ATTACK:
 		enemy.apply_temporary_resistance(enemy.last_attack_type)
 		return 0

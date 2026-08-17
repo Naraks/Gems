@@ -266,8 +266,11 @@ func _pulse_intent() -> void:
 
 
 func _show_special_feedback(intent: RefCounted) -> void:
-	var value_text := "−%d HP" % intent.value if "Огненный удар" in intent.title else "+%d" % intent.value
-	special_feedback_label.text = "%s · %s" % [intent.title.to_upper(), value_text]
+	if intent.show_value:
+		var value_text := "−%d HP" % intent.value if "Огненный удар" in intent.title else "+%d" % intent.value
+		special_feedback_label.text = "%s · %s" % [intent.title.to_upper(), value_text]
+	else:
+		special_feedback_label.text = intent.title.to_upper()
 	special_feedback_label.modulate = Color("#d8d1c4")
 	special_feedback_label.visible = true
 	board_flash.visible = true

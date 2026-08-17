@@ -74,6 +74,11 @@ func apply_temporary_resistance(attack_type: int) -> bool:
 	return true
 
 
+func swap_affinities() -> void:
+	assert(weakness_type != AttackTypeScript.Kind.NONE and resistance_type != AttackTypeScript.Kind.NONE, "Both affinities are required for swapping")
+	configure_affinities(resistance_type, weakness_type, _weakness_multiplier, _resistance_multiplier)
+
+
 func record_player_attack(attack_type: int) -> void:
 	last_attack_type = attack_type
 	if temporary_resistance_type == AttackTypeScript.Kind.NONE:

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"void_archmage"
+display_name = "Архимаг пустоты"
+archetype = "Босс"
+biome_id = &"tower"
+battle_slot = 10
+weakness_type = 0
+resistance_type = 1
+is_boss = true
+intent_cycle = PackedInt32Array(0, 2, 0, 2)
+intent_multipliers = PackedFloat32Array(1, 1, 1.15, 1)
+attack_title = "Магия пустоты"
+special_title = "Сдвиг: поворот поля"
+alternate_special_title = "Смена слабости и сопротивления"
+special_value = 1
+special_behavior = 4
+health_multiplier = 1.16
+damage_multiplier = 1.1
+experience_multiplier = 1.2
+coin_bonus = 5
+visual_symbol = "✦"
+visual_color = Color(0.3, 0.2, 0.58, 1)
