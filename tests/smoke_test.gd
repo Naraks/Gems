@@ -19,7 +19,7 @@ func _init() -> void:
 		var instance := main_scene.instantiate()
 		failed = _check(instance != null, "Main scene instantiates") or failed
 		failed = _check(instance.get_script() != null, "Main scene script loads") or failed
-		var board_view := instance.get_node_or_null("Layout/BoardArea/BoardCenter/BoardView")
+		var board_view := instance.get_node_or_null("%BoardView")
 		failed = _check(board_view != null and board_view.get_script() != null, "Board view script loads") or failed
 		instance.free()
 

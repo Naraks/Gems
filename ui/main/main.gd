@@ -17,7 +17,14 @@ const SWAP_PREVIEW_SECONDS := 0.12
 
 @onready var board_view: Control = %BoardView
 @onready var turn_result_label: Label = %TurnResultLabel
-@onready var combat_status_label: Label = %CombatStatusLabel
+@onready var battle_number_label: Label = %BattleNumberLabel
+@onready var pause_button: Button = %PauseButton
+@onready var pause_overlay: ColorRect = %PauseOverlay
+@onready var hero_health_label: Label = %HeroHealthLabel
+@onready var coins_label: Label = %CoinsLabel
+@onready var enemy_health_label: Label = %EnemyHealthLabel
+@onready var enemy_intent_label: Label = %EnemyIntentLabel
+@onready var weakness_label: Label = %WeaknessLabel
 
 var _board: RefCounted
 var _board_resolver: RefCounted
@@ -52,6 +59,9 @@ func _ready() -> void:
 	)
 	board_view.setup(_board)
 	board_view.swap_requested.connect(_on_swap_requested)
+	pause_button.pressed.connect(_toggle_pause)
+	resized.connect(_apply_responsive_style)
+	_apply_responsive_style()
 	_update_combat_status()
 
 
@@ -96,12 +106,27 @@ func _perform_enemy_action(battle: RefCounted) -> void:
 
 
 func _update_combat_status() -> void:
-	combat_status_label.text = "Герой: %d/%d HP · Монеты: %d          Враг: %d/%d HP · Слабость: %s · Намерение: %s" % [
-		_battle.hero.health,
-		_battle.hero.max_health,
-		_battle.hero.coins,
-		_battle.enemy.health,
-		_battle.enemy.max_health,
-		_battle.enemy.weakness_display(),
-		_battle.enemy.current_intent.display_text(),
-	]
+	battle_number_label.text = "Бой 1"
+	hero_health_label.text = "HP %d / %d" % [_battle.hero.health, _battle.hero.max_health]
+	coins_label.text = "Монеты: %d" % _battle.hero.coins
+	enemy_health_label.text = "HP %d / %d" % [_battle.enemy.health, _battle.enemy.max_health]
+	enemy_intent_label.text = "Намерение: %s" % _battle.enemy.current_intent.display_text()
+	weakness_label.text = "Слабость: %s" % _battle.enemy.weakness_display()
+
+
+func _toggle_pause() -> void:
+	var paused := not get_tree().paused
+	get_tree().paused = paused
+	pause_overlay.visible = paused
+	pause_button.text = "Продолжить" if paused else "Пауза"
+
+
+func _apply_responsive_style() -> void:
+	var compact := size.y < 420.0
+	var body_font_size := 14 if compact else 18
+	var title_font_size := 15 if compact else 20
+	for label in [hero_health_label, coins_label, enemy_health_label, enemy_intent_label, weakness_label, turn_result_label]:
+		if label != null:
+			label.add_theme_font_size_override("font_size", body_font_size)
+	if battle_number_label != null:
+		battle_number_label.add_theme_font_size_override("font_size", title_font_size)

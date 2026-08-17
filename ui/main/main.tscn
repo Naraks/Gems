@@ -15,31 +15,65 @@ script = ExtResource("1_main")
 rules = ExtResource("2_rules")
 
 [node name="Layout" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 0
 
 [node name="BoardArea" type="PanelContainer" parent="Layout"]
-custom_minimum_size = Vector2(0, 324)
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 60.0
 
-[node name="BoardCenter" type="CenterContainer" parent="Layout/BoardArea"]
+[node name="BoardLayout" type="VBoxContainer" parent="Layout/BoardArea"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TopBar" type="MarginContainer" parent="Layout/BoardArea/BoardLayout"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 4
+
+[node name="TopBarContent" type="HBoxContainer" parent="Layout/BoardArea/BoardLayout/TopBar"]
 layout_mode = 2
 
-[node name="BoardView" type="Control" parent="Layout/BoardArea/BoardCenter"]
+[node name="BattleNumberLabel" type="Label" parent="Layout/BoardArea/BoardLayout/TopBar/TopBarContent"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(310, 310)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Бой 1"
+vertical_alignment = 1
+
+[node name="PauseButton" type="Button" parent="Layout/BoardArea/BoardLayout/TopBar/TopBarContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+process_mode = 3
+text = "Пауза"
+
+[node name="BoardCenter" type="AspectRatioContainer" parent="Layout/BoardArea/BoardLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+ratio = 1.0
+stretch_mode = 2
+
+[node name="BoardView" type="Control" parent="Layout/BoardArea/BoardLayout/BoardCenter"]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_default_cursor_shape = 2
 script = ExtResource("3_board_view")
 
 [node name="TurnResultArea" type="PanelContainer" parent="Layout"]
-custom_minimum_size = Vector2(0, 43)
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 8.0
@@ -47,19 +81,101 @@ size_flags_stretch_ratio = 8.0
 [node name="TurnResultLabel" type="Label" parent="Layout/TurnResultArea"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Результат хода · Слабость"
+text = "Сделайте комбинацию из трёх камней"
 horizontal_alignment = 1
 vertical_alignment = 1
+text_overrun_behavior = 3
 
 [node name="CombatArea" type="PanelContainer" parent="Layout"]
-custom_minimum_size = Vector2(0, 173)
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 32.0
 
-[node name="CombatStatusLabel" type="Label" parent="Layout/CombatArea"]
+[node name="CombatMargin" type="MarginContainer" parent="Layout/CombatArea"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="Fighters" type="HBoxContainer" parent="Layout/CombatArea/CombatMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="HeroPanel" type="VBoxContainer" parent="Layout/CombatArea/CombatMargin/Fighters"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="HeroTitleLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/HeroPanel"]
+layout_mode = 2
+text = "ГЕРОЙ"
+horizontal_alignment = 1
+
+[node name="HeroHealthLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/HeroPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Герой                         Враг"
+text = "HP 100 / 100"
+horizontal_alignment = 1
+
+[node name="CoinsLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/HeroPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Монеты: 0"
+horizontal_alignment = 1
+
+[node name="Divider" type="VSeparator" parent="Layout/CombatArea/CombatMargin/Fighters"]
+layout_mode = 2
+
+[node name="EnemyPanel" type="VBoxContainer" parent="Layout/CombatArea/CombatMargin/Fighters"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="EnemyTitleLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
+layout_mode = 2
+text = "ВРАГ"
+horizontal_alignment = 1
+
+[node name="EnemyHealthLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP 45 / 45"
+horizontal_alignment = 1
+
+[node name="EnemyIntentLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Намерение: Атака 8"
+horizontal_alignment = 1
+
+[node name="WeaknessLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Слабость: ?"
+horizontal_alignment = 1
+
+[node name="PauseOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="PauseText" type="Label" parent="PauseOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 28
+text = "ПАУЗА"
 horizontal_alignment = 1
 vertical_alignment = 1
