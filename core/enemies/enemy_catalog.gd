@@ -2,6 +2,10 @@ class_name EnemyCatalog
 extends RefCounted
 
 const BIOMES := [&"ruins", &"mines", &"tower"]
+const BOSS_PATHS := {
+	10: "res://data/enemies/stone_guardian.tres",
+	20: "res://data/enemies/fire_golem.tres",
+}
 const PATHS := {
 	&"ruins": [
 		"res://data/enemies/ruins_fighter.tres", "res://data/enemies/ruins_healer.tres", "res://data/enemies/ruins_curser.tres", "res://data/enemies/ruins_berserker.tres", "res://data/enemies/ruins_shieldbearer.tres",
@@ -39,3 +43,8 @@ func for_battle(battle_number: int) -> Resource:
 	var biome_index := floori(float(cycle_battle) / 10.0)
 	var biome: StringName = BIOMES[biome_index]
 	return for_biome(biome)[cycle_battle % 10]
+
+
+func boss_for_battle(battle_number: int) -> Resource:
+	assert(battle_number >= 1 and battle_number % 10 == 0, "Boss battle must be a positive multiple of ten")
+	return load(BOSS_PATHS.get(battle_number, BOSS_PATHS[10]))

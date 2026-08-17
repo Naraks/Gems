@@ -1,7 +1,7 @@
 class_name EnemyDefinition
 extends Resource
 
-enum SpecialBehavior { NONE, ADD_BLOCKERS, SHIELD_LAST_ATTACK }
+enum SpecialBehavior { NONE, ADD_BLOCKERS, SHIELD_LAST_ATTACK, FIRE_HEART_STRIKE }
 
 @export var id: StringName
 @export var display_name: String

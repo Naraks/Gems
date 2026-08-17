@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fire_golem"
+display_name = "Огненный голем"
+archetype = "Босс"
+biome_id = &"mines"
+battle_slot = 10
+weakness_type = 1
+resistance_type = 0
+is_boss = true
+intent_cycle = PackedInt32Array(0, 3, 2)
+intent_multipliers = PackedFloat32Array(1, 2, 2)
+special_title = "Огненный удар · 2 сердца в камень"
+special_value = 2
+special_behavior = 3
+health_multiplier = 1.08
+damage_multiplier = 1.05
+experience_multiplier = 1.1
+coin_bonus = 3
+visual_symbol = "♨"
+visual_color = Color(0.72, 0.24, 0.1, 1)

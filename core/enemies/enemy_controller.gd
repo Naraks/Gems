@@ -40,18 +40,28 @@ func _build_intent() -> RefCounted:
 		EnemyIntentScript.Kind.HEAL:
 			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), "Лечение")
 		EnemyIntentScript.Kind.SPECIAL:
+			if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.FIRE_HEART_STRIKE:
+				return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), enemy.definition.special_title, _perform_special)
 			return EnemyIntentScript.new(kind, enemy.definition.special_value, enemy.definition.special_title, _perform_special)
 		EnemyIntentScript.Kind.PREPARE:
-			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), "Подготовка")
+			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), enemy.definition.special_title)
 	return EnemyIntentScript.new(EnemyIntentScript.Kind.ATTACK, enemy.base_damage)
 
 
-func _perform_special(_battle: RefCounted, amount: int) -> void:
+func _perform_special(battle: RefCounted, amount: int) -> int:
+	if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.FIRE_HEART_STRIKE:
+		var damage_dealt: int = battle.hero.take_damage(amount)
+		_replace_tiles_with_blockers(TileTypeScript.Value.HEART, enemy.definition.special_value)
+		return damage_dealt
 	if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.SHIELD_LAST_ATTACK:
 		enemy.apply_temporary_resistance(enemy.last_attack_type)
-		return
+		return 0
 	if enemy.definition.special_behavior != EnemyDefinitionScript.SpecialBehavior.ADD_BLOCKERS:
-		return
+		return 0
+	return _replace_tiles_with_blockers(-1, amount)
+
+
+func _replace_tiles_with_blockers(required_tile: int, amount: int) -> int:
 	var candidates: Array[Vector2i] = []
 	var empty_count := 0
 	for y in board.size.y:
@@ -59,9 +69,10 @@ func _perform_special(_battle: RefCounted, amount: int) -> void:
 			var position := Vector2i(x, y)
 			if board.get_cell(position) == TileTypeScript.Value.EMPTY_STONE:
 				empty_count += 1
-			else:
+			elif required_tile < 0 or board.get_cell(position) == required_tile:
 				candidates.append(position)
 	var allowed := mini(amount, mini(maxi(0, maximum_empty_stones - empty_count), candidates.size()))
 	for _index in allowed:
 		var picked := _random.randi_range(0, candidates.size() - 1)
 		board.set_cell(candidates.pop_at(picked), TileTypeScript.Value.EMPTY_STONE)
+	return allowed

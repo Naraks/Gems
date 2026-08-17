@@ -3,7 +3,6 @@ extends RefCounted
 
 const MAX_TURNS_PER_BATTLE := 100
 const MAX_ROUTE_NODES := 20
-const BOSS_PATH := "res://data/enemies/stone_guardian.tres"
 
 const RoutePlannerScript = preload("res://core/run/linear_route_planner.gd")
 const RouteNodeScript = preload("res://core/run/route_node.gd")
@@ -112,7 +111,7 @@ func simulate_many(count: int, first_seed: int = 24001) -> Dictionary:
 func _simulate_battle(hero: RefCounted, battle_number: int, seed: int, random: RandomNumberGenerator) -> Dictionary:
 	hero.reset_battle_relics()
 	var definition: Resource = (
-		load(BOSS_PATH)
+		EnemyCatalogScript.new().boss_for_battle(battle_number)
 		if battle_number % rules.boss_interval == 0
 		else EnemyCatalogScript.new().for_battle(battle_number)
 	)

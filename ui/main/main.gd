@@ -19,7 +19,6 @@ const RelicDefinitionScript = preload("res://core/progression/relic_definition.g
 const EnemyFactoryScript = preload("res://core/enemies/enemy_factory.gd")
 const EnemyControllerScript = preload("res://core/enemies/enemy_controller.gd")
 const EnemyCatalogScript = preload("res://core/enemies/enemy_catalog.gd")
-const FIRST_BOSS_PATH := "res://data/enemies/stone_guardian.tres"
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
@@ -95,7 +94,7 @@ func _ready() -> void:
 		)
 	hero.reset_battle_relics()
 	var enemy_definition: Resource = (
-		load(FIRST_BOSS_PATH)
+		EnemyCatalogScript.new().boss_for_battle(battle_number)
 		if battle_number % rules.boss_interval == 0
 		else EnemyCatalogScript.new().for_battle(battle_number)
 	)
@@ -267,7 +266,8 @@ func _pulse_intent() -> void:
 
 
 func _show_special_feedback(intent: RefCounted) -> void:
-	special_feedback_label.text = "%s · +%d" % [intent.title.to_upper(), intent.value]
+	var value_text := "−%d HP" % intent.value if "Огненный удар" in intent.title else "+%d" % intent.value
+	special_feedback_label.text = "%s · %s" % [intent.title.to_upper(), value_text]
 	special_feedback_label.modulate = Color("#d8d1c4")
 	special_feedback_label.visible = true
 	board_flash.visible = true

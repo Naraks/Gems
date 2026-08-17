@@ -24,6 +24,8 @@ func execute(intent: RefCounted, battle: RefCounted) -> int:
 				battle.enemy_intent_delayed = true
 				return 0
 			if intent.action.is_valid():
-				intent.action.call(battle, intent.value)
+				var action_result: Variant = intent.action.call(battle, intent.value)
+				if action_result is int:
+					return action_result
 			return intent.value
 	return 0
