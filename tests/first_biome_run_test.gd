@@ -78,8 +78,13 @@ func _run() -> void:
 	var battle_screen = (load("res://ui/main/main.tscn") as PackedScene).instantiate()
 	root.add_child(battle_screen)
 	await process_frame
+	var automatic_transitions := [0]
+	battle_screen.battle_completed.connect(func() -> void: automatic_transitions[0] += 1)
 	battle_screen._grant_victory_experience()
-	failed = _check(battle_screen.battle_transition_overlay.visible and "опыта" in battle_screen.battle_reward_label.text, "Victory shows rewards and an explicit next-node transition") or failed
+	failed = _check(battle_screen.battle_transition_overlay.visible and "опыта" in battle_screen.battle_reward_label.text, "Victory briefly shows its rewards") or failed
+	failed = _check(battle_screen.get_node_or_null("%ContinueRunButton") == null, "Victory has no manual next-node button") or failed
+	await create_timer(0.75).timeout
+	failed = _check(automatic_transitions[0] == 1, "Victory automatically continues to the next node") or failed
 	battle_screen.queue_free()
 	await process_frame
 	quit(1 if failed else 0)

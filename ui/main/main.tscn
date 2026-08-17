@@ -324,7 +324,7 @@ theme_override_constants/separation = 18
 [node name="TransitionTitle" type="Label" parent="BattleTransitionOverlay/TransitionLayout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "ПОБЕДА"
+text = "ПОБЕДА · ПУТЬ ПРОДОЛЖАЕТСЯ"
 horizontal_alignment = 1
 
 [node name="BattleRewardLabel" type="Label" parent="BattleTransitionOverlay/TransitionLayout"]
@@ -333,12 +333,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "+18 опыта · +5 монет"
 horizontal_alignment = 1
-
-[node name="ContinueRunButton" type="Button" parent="BattleTransitionOverlay/TransitionLayout"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 48)
-layout_mode = 2
-text = "К следующему узлу"
 
 [node name="LevelUpOverlay" type="ColorRect" parent="."]
 unique_name_in_owner = true

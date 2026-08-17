@@ -26,6 +26,7 @@ const FIRST_BOSS_PATH := "res://data/enemies/stone_guardian.tres"
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
+const AUTO_CONTINUE_SECONDS := 0.65
 
 @export var rules: GameRules
 @export var tutorial_completed := true
@@ -56,7 +57,6 @@ var run_hero: RefCounted
 @onready var level_up_overlay: ColorRect = %LevelUpOverlay
 @onready var battle_transition_overlay: ColorRect = %BattleTransitionOverlay
 @onready var battle_reward_label: Label = %BattleRewardLabel
-@onready var continue_run_button: Button = %ContinueRunButton
 @onready var upgrade_buttons: Array[Button] = [%UpgradeButton1, %UpgradeButton2, %UpgradeButton3]
 
 var _board: RefCounted
@@ -73,6 +73,7 @@ var _enemy_controller: RefCounted
 var _feedback_active := false
 var _feedback_tweens: Array[Tween] = []
 var _feedback_speed := 1.0
+var _auto_transition_started := false
 var feedback_events: PackedStringArray = []
 
 
@@ -110,7 +111,6 @@ func _ready() -> void:
 	board_view.setup(_board)
 	board_view.swap_requested.connect(_on_swap_requested)
 	pause_button.pressed.connect(_toggle_pause)
-	continue_run_button.pressed.connect(func() -> void: battle_completed.emit())
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
 	resized.connect(_apply_responsive_style)
@@ -340,6 +340,8 @@ func _grant_victory_experience() -> void:
 	_update_combat_status()
 	if _battle.level_up_pending:
 		_show_level_up_choices()
+	else:
+		_continue_run_automatically()
 
 
 func _show_level_up_choices() -> void:
@@ -361,6 +363,16 @@ func _choose_upgrade(index: int) -> void:
 		_show_level_up_choices()
 	else:
 		level_up_overlay.visible = false
+		_continue_run_automatically()
+
+
+func _continue_run_automatically() -> void:
+	if _auto_transition_started:
+		return
+	_auto_transition_started = true
+	await get_tree().create_timer(AUTO_CONTINUE_SECONDS).timeout
+	if is_inside_tree():
+		battle_completed.emit()
 
 
 func _toggle_pause() -> void:
