@@ -6,12 +6,29 @@ var health: int
 var coins := 0
 var experience := 0
 var level := 1
+var sword_power: float
+var magic_power: float
+var healing_power: float
+var coin_multiplier: float
 
 
-func _init(maximum_health: int, current_health: int = -1) -> void:
+func _init(
+	maximum_health: int,
+	current_health: int = -1,
+	starting_sword_power: float = 1.0,
+	starting_magic_power: float = 1.0,
+	starting_healing_power: float = 1.0,
+	starting_coin_multiplier: float = 1.0,
+) -> void:
 	assert(maximum_health > 0, "Hero maximum health must be positive")
+	assert(starting_sword_power >= 0.0 and starting_magic_power >= 0.0, "Damage power cannot be negative")
+	assert(starting_healing_power >= 0.0 and starting_coin_multiplier >= 0.0, "Effect power cannot be negative")
 	max_health = maximum_health
 	health = maximum_health if current_health < 0 else clampi(current_health, 0, max_health)
+	sword_power = starting_sword_power
+	magic_power = starting_magic_power
+	healing_power = starting_healing_power
+	coin_multiplier = starting_coin_multiplier
 
 
 func take_damage(amount: int) -> int:

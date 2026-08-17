@@ -14,14 +14,15 @@ func evaluate(board: RefCounted, matches: Array, cascade_multiplier: float, rule
 		var strength: float = float(match_group.cells.size()) * match_group.multiplier() * cascade_multiplier
 		match match_group.tile:
 			TileTypeScript.Value.SWORD:
-				effects.physical_damage += ceili(float(rules.base_physical_damage) * strength)
+				effects.physical_components.append(float(rules.base_physical_damage) * strength)
 			TileTypeScript.Value.MAGIC:
-				effects.magic_damage += ceili(float(rules.base_magic_damage) * strength)
+				effects.magic_components.append(float(rules.base_magic_damage) * strength)
 			TileTypeScript.Value.HEART:
-				effects.healing += ceili(float(rules.base_healing) * strength)
+				effects.healing_components.append(float(rules.base_healing) * strength)
 			TileTypeScript.Value.COIN:
-				effects.coins += ceili(float(rules.base_coins) * strength)
+				effects.coin_components.append(float(rules.base_coins) * strength)
 		_collect_blockers(board, match_group, blockers)
+	effects.update_rounded_totals()
 	for position in blockers:
 		effects.cleared_empty_stones.append(position)
 	effects.cleared_empty_stones.sort_custom(func(first: Vector2i, second: Vector2i) -> bool:

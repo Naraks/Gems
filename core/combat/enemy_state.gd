@@ -3,6 +3,8 @@ extends RefCounted
 
 var max_health: int
 var health: int
+var physical_damage_multiplier := 1.0
+var magic_damage_multiplier := 1.0
 
 
 func _init(maximum_health: int, current_health: int = -1) -> void:

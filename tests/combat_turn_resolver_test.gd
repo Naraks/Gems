@@ -47,10 +47,14 @@ func _init() -> void:
 
 func _effects(physical: int, magic: int, healing: int, coins: int) -> RefCounted:
 	var result = BoardResolutionResultScript.new()
-	result.total_physical_damage = physical
-	result.total_magic_damage = magic
-	result.total_healing = healing
-	result.total_coins = coins
+	if physical > 0:
+		result.physical_components.append(float(physical))
+	if magic > 0:
+		result.magic_components.append(float(magic))
+	if healing > 0:
+		result.healing_components.append(float(healing))
+	if coins > 0:
+		result.coin_components.append(float(coins))
 	return result
 
 

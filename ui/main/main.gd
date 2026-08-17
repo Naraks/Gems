@@ -33,7 +33,14 @@ func _ready() -> void:
 	_board_shuffler = BoardShufflerScript.new()
 	_turn_controller = BoardTurnControllerScript.new(_board, rules.minimum_match_size)
 	_battle = BattleStateScript.new(
-		HeroStateScript.new(rules.hero_max_health),
+		HeroStateScript.new(
+			rules.hero_max_health,
+			-1,
+			rules.hero_sword_power,
+			rules.hero_magic_power,
+			rules.hero_healing_power,
+			rules.hero_coin_multiplier,
+		),
 		EnemyStateScript.new(rules.enemy_base_health),
 	)
 	board_view.setup(_board)
@@ -60,10 +67,10 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 			_turn_controller.move_count,
 			resolution.steps.size(),
 			" · ⚔%d ✦%d ♥%d ◉%d%s" % [
-				resolution.total_physical_damage,
-				resolution.total_magic_damage,
-				resolution.total_healing,
-				resolution.total_coins,
+				combat_result.physical_damage_applied,
+				combat_result.magic_damage_applied,
+				combat_result.healing_applied,
+				combat_result.coins_granted,
 				" · поле перемешано" if was_reshuffled else "",
 			],
 		]
