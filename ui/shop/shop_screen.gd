@@ -20,8 +20,8 @@ func _ready() -> void:
 	leave_button.pressed.connect(func() -> void: closed.emit())
 
 
-func setup(hero: RefCounted, seed: int = 0) -> void:
-	shop = ShopStateScript.new(hero, seed)
+func setup(hero: RefCounted, seed: int = 0, defeated_bosses: int = 0) -> void:
+	shop = ShopStateScript.new(hero, seed, defeated_bosses)
 	_refresh_ui()
 
 

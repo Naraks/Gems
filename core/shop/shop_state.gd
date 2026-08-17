@@ -6,14 +6,21 @@ const RelicCatalogScript = preload("res://core/progression/relic_catalog.gd")
 
 var hero: RefCounted
 var items: Array[RefCounted] = []
-var refresh_cost := 15
+var refresh_cost: int
+var refresh_count := 0
+var defeated_bosses: int
+var rules: Resource
 var _random := RandomNumberGenerator.new()
 var _relic_catalog := RelicCatalogScript.new()
 
 
-func _init(hero_state: RefCounted, seed: int = 0) -> void:
+func _init(hero_state: RefCounted, seed: int = 0, boss_count: int = 0, economy_rules: Resource = null) -> void:
 	assert(hero_state != null, "Shop requires hero state")
+	assert(boss_count >= 0, "Defeated boss count cannot be negative")
 	hero = hero_state
+	defeated_bosses = boss_count
+	rules = economy_rules if economy_rules != null else load("res://data/economy_rules.tres")
+	refresh_cost = _price(rules.refresh_base_price)
 	if seed == 0:
 		_random.randomize()
 	else:
@@ -52,7 +59,8 @@ func refresh() -> bool:
 	if not can_refresh():
 		return false
 	hero.coins -= refresh_cost
-	refresh_cost += 10
+	refresh_count += 1
+	refresh_cost = _price(rules.refresh_base_price + rules.refresh_price_increment * refresh_count)
 	_generate_items()
 	return true
 
@@ -60,14 +68,14 @@ func refresh() -> bool:
 func _generate_items() -> void:
 	items.clear()
 	if _random.randi() % 2 == 0:
-		items.append(ShopItemScript.new(ShopItemScript.Kind.SMALL_HEAL, "Малое лечение", "+25 HP", 20))
+		items.append(ShopItemScript.new(ShopItemScript.Kind.SMALL_HEAL, "Малое лечение", "+25 HP", _price(rules.small_heal_price)))
 	else:
-		items.append(ShopItemScript.new(ShopItemScript.Kind.FULL_HEAL, "Полное лечение", "Восстановить полное HP", 55))
+		items.append(ShopItemScript.new(ShopItemScript.Kind.FULL_HEAL, "Полное лечение", "Восстановить полное HP", _price(rules.full_heal_price)))
 	var upgrades: Array[RefCounted] = [
-		ShopItemScript.new(ShopItemScript.Kind.FORTIFY, "Укрепление", "Max HP +15 и лечение на 15", 60),
-		ShopItemScript.new(ShopItemScript.Kind.SWORD_POWER, "Усиление меча", "Сила меча +12%", 50),
-		ShopItemScript.new(ShopItemScript.Kind.MAGIC_POWER, "Усиление магии", "Сила магии +12%", 50),
-		ShopItemScript.new(ShopItemScript.Kind.HEALING_POWER, "Усиление лечения", "Сила лечения +15%", 45),
+		ShopItemScript.new(ShopItemScript.Kind.FORTIFY, "Укрепление", "Max HP +15 и лечение на 15", _price(rules.fortify_price)),
+		ShopItemScript.new(ShopItemScript.Kind.SWORD_POWER, "Усиление меча", "Сила меча +12%", _price(rules.sword_power_price)),
+		ShopItemScript.new(ShopItemScript.Kind.MAGIC_POWER, "Усиление магии", "Сила магии +12%", _price(rules.magic_power_price)),
+		ShopItemScript.new(ShopItemScript.Kind.HEALING_POWER, "Усиление лечения", "Сила лечения +15%", _price(rules.healing_power_price)),
 	]
 	for _index in 2:
 		items.append(upgrades.pop_at(_random.randi_range(0, upgrades.size() - 1)))
@@ -76,7 +84,11 @@ func _generate_items() -> void:
 		items.append(ShopItemScript.new(ShopItemScript.Kind.RELIC, "Реликвии собраны", "Нет новых реликвий", 0))
 	else:
 		var relic = relics[_random.randi_range(0, relics.size() - 1)]
-		items.append(ShopItemScript.new(ShopItemScript.Kind.RELIC, relic.title, relic.description, relic.price, relic))
+		items.append(ShopItemScript.new(ShopItemScript.Kind.RELIC, relic.title, relic.description, _price(relic.price), relic))
+
+
+func _price(base_price: int) -> int:
+	return rules.scaled_price(base_price, defeated_bosses)
 
 
 func _apply(item: RefCounted) -> void:
