@@ -10,6 +10,11 @@ const SHOP_SCENE := preload("res://ui/shop/shop_screen.tscn")
 @onready var content: Control = %RunContent
 @onready var completion_panel: Control = %BiomeComplete
 @onready var completion_summary: Label = %CompletionSummary
+@onready var defeat_panel: Control = %RunSummaryPanel
+@onready var defeat_summary: Label = %RunSummaryLabel
+@onready var return_to_menu_button: Button = %ReturnToMenuButton
+@onready var menu_panel: Control = %RunMenuPanel
+@onready var new_run_button: Button = %NewRunButton
 @onready var journey_stage: Control = %JourneyStage
 @onready var journey_hero: ColorRect = %JourneyHero
 @onready var distant_ruins: Label = %DistantRuins
@@ -25,6 +30,8 @@ var _journey_tween: Tween
 
 
 func _ready() -> void:
+	return_to_menu_button.pressed.connect(_on_return_to_menu)
+	new_run_button.pressed.connect(_start_new_run)
 	if run_state == null:
 		run_state = RunStateScript.new(HeroStateScript.new(100))
 	_show_current_node()
@@ -41,13 +48,27 @@ func _show_current_node() -> void:
 		current_screen.queue_free()
 		current_screen = null
 	completion_panel.visible = false
+	defeat_panel.visible = false
+	menu_panel.visible = false
 	node_title_label.text = run_state.node_title()
+	if run_state.status == RunStateScript.Status.DEFEAT_SUMMARY:
+		encounter_avatar.visible = false
+		journey_status.text = "Путешествие завершено"
+		defeat_summary.text = run_state.summary_text()
+		defeat_panel.visible = true
+		return
+	if run_state.status == RunStateScript.Status.MENU:
+		encounter_avatar.visible = false
+		journey_status.text = "Камни и Клинки"
+		menu_panel.visible = true
+		return
 	match run_state.current_kind:
 		RunStateScript.NodeKind.BATTLE, RunStateScript.NodeKind.BOSS:
 			var battle = BATTLE_SCENE.instantiate()
 			battle.battle_number = run_state.battle_number
 			battle.run_hero = run_state.hero
 			battle.battle_completed.connect(_on_battle_completed)
+			battle.battle_defeated.connect(_on_battle_defeated)
 			content.add_child(battle)
 			current_screen = battle
 			_show_encounter("БОСС" if run_state.current_kind == RunStateScript.NodeKind.BOSS else "ВРАГ", false)
@@ -76,6 +97,21 @@ func _on_battle_completed() -> void:
 
 func _on_shop_closed() -> void:
 	run_state.leave_shop()
+	_show_current_node()
+
+
+func _on_battle_defeated() -> void:
+	run_state.finish_defeat()
+	_show_current_node()
+
+
+func _on_return_to_menu() -> void:
+	run_state.open_menu()
+	_show_current_node()
+
+
+func _start_new_run() -> void:
+	run_state = RunStateScript.new(HeroStateScript.new(100))
 	_show_current_node()
 
 

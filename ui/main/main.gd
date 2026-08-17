@@ -1,6 +1,7 @@
 extends Control
 
 signal battle_completed
+signal battle_defeated
 
 const BoardGeneratorScript = preload("res://core/board/board_generator.gd")
 const BoardResolverScript = preload("res://core/board/board_resolver.gd")
@@ -74,6 +75,7 @@ var _feedback_active := false
 var _feedback_tweens: Array[Tween] = []
 var _feedback_speed := 1.0
 var _auto_transition_started := false
+var _defeat_reported := false
 var feedback_events: PackedStringArray = []
 
 
@@ -153,6 +155,7 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 			_grant_victory_experience()
 		elif combat_result.defeat:
 			turn_result_label.text += " · ПОРАЖЕНИЕ"
+			_notify_defeat()
 	else:
 		turn_result_label.text = "Недопустимый ход"
 		await get_tree().create_timer(SWAP_PREVIEW_SECONDS).timeout
@@ -377,6 +380,13 @@ func _continue_run_automatically() -> void:
 	await get_tree().create_timer(AUTO_CONTINUE_SECONDS).timeout
 	if is_inside_tree():
 		battle_completed.emit()
+
+
+func _notify_defeat() -> void:
+	if _defeat_reported:
+		return
+	_defeat_reported = true
+	battle_defeated.emit.call_deferred()
 
 
 func _toggle_pause() -> void:

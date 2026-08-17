@@ -220,3 +220,104 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "10 боёв завершено"
 horizontal_alignment = 1
+
+[node name="RunSummaryPanel" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.075, 0.035, 0.04, 0.97)
+
+[node name="SummaryLayout" type="VBoxContainer" parent="RunSummaryPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -150.0
+offset_right = 290.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 22
+
+[node name="Title" type="Label" parent="RunSummaryPanel/SummaryLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.48, 0.42, 1)
+theme_override_font_sizes/font_size = 32
+text = "ЗАБЕГ ЗАВЕРШЁН"
+horizontal_alignment = 1
+
+[node name="Reason" type="Label" parent="RunSummaryPanel/SummaryLayout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Герой пал в бою"
+horizontal_alignment = 1
+
+[node name="RunSummaryLabel" type="Label" parent="RunSummaryPanel/SummaryLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+text = "Глубина: бой 1 · Побед: 0\nДлительность: 00:00 · Магазинов: 0\nУровень: 1 · Монеты: 0 · Реликвии: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReturnToMenuButton" type="Button" parent="RunSummaryPanel/SummaryLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "В меню"
+
+[node name="RunMenuPanel" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.075, 0.055, 0.98)
+
+[node name="MenuLayout" type="VBoxContainer" parent="RunMenuPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -100.0
+offset_right = 260.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="RunMenuPanel/MenuLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.95, 0.62, 1)
+theme_override_font_sizes/font_size = 36
+text = "КАМНИ И КЛИНКИ"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="RunMenuPanel/MenuLayout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Каждый новый путь начинается без накопленного прогресса"
+horizontal_alignment = 1
+
+[node name="NewRunButton" type="Button" parent="RunMenuPanel/MenuLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 52)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Новый забег"
