@@ -56,12 +56,19 @@ func _run() -> void:
 	await process_frame
 	var background := run_screen.get_node("RuinsBackground") as ColorRect
 	failed = _check(background.color.g > background.color.r and "Заросшие руины" in run_screen.node_title_label.text, "Run screen uses a readable green ruins palette and node title") or failed
+	failed = _check(run_screen.journey_hero.visible and run_screen.journey_stage.size.y > 0.0, "Hero remains visible on the persistent journey stage") or failed
+	failed = _check(run_screen.encounter_avatar.visible and "ВРАГ" in run_screen.encounter_label.text and run_screen.is_travelling, "Enemy encounter appears on the journey screen while the hero advances") or failed
 	failed = _check(run_screen.current_screen.run_hero == ui_hero and run_screen.current_screen.battle_number == 1, "Battle screen receives persistent hero and node number") or failed
 	while ui_state.current_kind != RunStateScript.NodeKind.SHOP:
 		run_screen._on_battle_completed()
 		await process_frame
 	var shop_after_battle: int = ui_state.battle_number
+	failed = _check(run_screen.journey_hero.visible and "ТОРГОВЕЦ" in run_screen.encounter_label.text, "Merchant and goods share the persistent journey screen") or failed
 	failed = _check(run_screen.current_screen.shop.hero == ui_hero, "Generated shop transition opens the real shop with the same hero") or failed
+	root.size = Vector2i(640, 360)
+	await process_frame
+	await process_frame
+	failed = _check(run_screen.journey_stage.size.y >= 80.0 and run_screen.current_screen.item_buttons[0].size.y >= 44.0, "Journey and merchant goods remain readable at mobile landscape size") or failed
 	run_screen._on_shop_closed()
 	await process_frame
 	failed = _check(ui_state.battle_number == shop_after_battle + 1 and run_screen.current_screen.run_hero == ui_hero, "Leaving shop continues to the next battle without resetting the run") or failed

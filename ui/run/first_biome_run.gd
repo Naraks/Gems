@@ -10,9 +10,16 @@ const SHOP_SCENE := preload("res://ui/shop/shop_screen.tscn")
 @onready var content: Control = %RunContent
 @onready var completion_panel: Control = %BiomeComplete
 @onready var completion_summary: Label = %CompletionSummary
+@onready var journey_stage: Control = %JourneyStage
+@onready var journey_hero: ColorRect = %JourneyHero
+@onready var encounter_avatar: ColorRect = %EncounterAvatar
+@onready var encounter_label: Label = %EncounterLabel
+@onready var journey_status: Label = %JourneyStatus
 
 var run_state: RefCounted
 var current_screen: Node
+var is_travelling := false
+var _journey_tween: Tween
 
 
 func _ready() -> void:
@@ -41,13 +48,17 @@ func _show_current_node() -> void:
 			battle.battle_completed.connect(_on_battle_completed)
 			content.add_child(battle)
 			current_screen = battle
+			_show_encounter("БОСС" if run_state.current_kind == RunStateScript.NodeKind.BOSS else "ВРАГ", false)
 		RunStateScript.NodeKind.SHOP:
 			var shop = SHOP_SCENE.instantiate()
 			content.add_child(shop)
 			shop.setup(run_state.hero, 19000 + run_state.battle_number)
 			shop.closed.connect(_on_shop_closed)
 			current_screen = shop
+			_show_encounter("ТОРГОВЕЦ", true)
 		RunStateScript.NodeKind.COMPLETE:
+			encounter_avatar.visible = false
+			journey_status.text = "Путь через руины завершён"
 			completion_panel.visible = true
 			completion_summary.text = "10 боёв завершено · Магазинов: %d\nУровень: %d · Монеты: %d" % [
 				run_state.shops_visited,
@@ -64,3 +75,28 @@ func _on_battle_completed() -> void:
 func _on_shop_closed() -> void:
 	run_state.leave_shop()
 	_show_current_node()
+
+
+func _show_encounter(kind_text: String, is_merchant: bool) -> void:
+	encounter_avatar.visible = true
+	encounter_avatar.color = Color("8b692f") if is_merchant else Color("852f2a")
+	encounter_label.text = ("☰\n" if is_merchant else "⚠\n") + kind_text
+	_play_travel_animation("Встреча: " + kind_text.to_lower())
+
+
+func _play_travel_animation(arrival_text: String) -> void:
+	if _journey_tween != null and _journey_tween.is_valid():
+		_journey_tween.kill()
+	is_travelling = true
+	journey_status.text = "Герой идёт дальше..."
+	var start_position := journey_hero.position
+	start_position.x = journey_stage.size.x * 0.08 - journey_hero.size.x * 0.5
+	journey_hero.position = start_position
+	encounter_avatar.modulate.a = 0.0
+	_journey_tween = create_tween().set_parallel(true)
+	_journey_tween.tween_property(journey_hero, "position:x", journey_stage.size.x * 0.28 - journey_hero.size.x * 0.5, 0.45).set_trans(Tween.TRANS_SINE)
+	_journey_tween.tween_property(encounter_avatar, "modulate:a", 1.0, 0.28).set_delay(0.17)
+	_journey_tween.chain().tween_callback(func() -> void:
+		is_travelling = false
+		journey_status.text = arrival_text
+	)
