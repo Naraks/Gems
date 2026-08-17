@@ -1,17 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
-
 [ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
-
 [resource]
 script = ExtResource("1")
-id = &"ruins_fighter"
-display_name = "Страж корней"
+id = &"mines_fighter"
+display_name = "Шахтный налётчик"
 archetype = "Боец"
-biome_id = &"ruins"
+biome_id = &"mines"
 battle_slot = 1
-weakness_type = 0
+weakness_type = 1
 intent_cycle = PackedInt32Array(0, 0)
-intent_multipliers = PackedFloat32Array(1, 1.5)
-special_title = "Усиленная атака"
-visual_symbol = "⚔"
-visual_color = Color(0.35, 0.55, 0.28, 1)
+intent_multipliers = PackedFloat32Array(1, 1.55)
+visual_symbol = "⚒"
+visual_color = Color(0.66, 0.32, 0.16, 1)

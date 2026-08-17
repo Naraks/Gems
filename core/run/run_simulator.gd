@@ -3,11 +3,6 @@ extends RefCounted
 
 const MAX_TURNS_PER_BATTLE := 100
 const MAX_ROUTE_NODES := 20
-const ENEMY_PATHS := [
-	"res://data/enemies/ruins_fighter.tres",
-	"res://data/enemies/ruins_healer.tres",
-	"res://data/enemies/ruins_curser.tres",
-]
 const BOSS_PATH := "res://data/enemies/stone_guardian.tres"
 
 const RoutePlannerScript = preload("res://core/run/linear_route_planner.gd")
@@ -18,6 +13,7 @@ const CombatTurnResolverScript = preload("res://core/combat/combat_turn_resolver
 const EnemyIntentExecutorScript = preload("res://core/combat/enemy_intent_executor.gd")
 const EnemyFactoryScript = preload("res://core/enemies/enemy_factory.gd")
 const EnemyControllerScript = preload("res://core/enemies/enemy_controller.gd")
+const EnemyCatalogScript = preload("res://core/enemies/enemy_catalog.gd")
 const BoardGeneratorScript = preload("res://core/board/board_generator.gd")
 const BoardResolutionResultScript = preload("res://core/board/board_resolution_result.gd")
 const ShopStateScript = preload("res://core/shop/shop_state.gd")
@@ -115,7 +111,11 @@ func simulate_many(count: int, first_seed: int = 24001) -> Dictionary:
 
 func _simulate_battle(hero: RefCounted, battle_number: int, seed: int, random: RandomNumberGenerator) -> Dictionary:
 	hero.reset_battle_relics()
-	var definition: Resource = load(BOSS_PATH if battle_number % rules.boss_interval == 0 else ENEMY_PATHS[(battle_number - 1) % ENEMY_PATHS.size()])
+	var definition: Resource = (
+		load(BOSS_PATH)
+		if battle_number % rules.boss_interval == 0
+		else EnemyCatalogScript.new().for_battle(battle_number)
+	)
 	var enemy = EnemyFactoryScript.new().create(definition, battle_number, hero.weakness_multiplier)
 	var board = BoardGeneratorScript.new(rules, seed + battle_number * 17).generate_starting_board()
 	var controller = EnemyControllerScript.new(enemy, board, rules.maximum_empty_stones, seed + battle_number * 31)

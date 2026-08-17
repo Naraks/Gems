@@ -17,6 +17,10 @@ var is_boss := false
 var definition: Resource
 var base_damage := 8
 var base_coin_reward := 5
+var last_attack_type := AttackTypeScript.Kind.NONE
+var temporary_resistance_type := AttackTypeScript.Kind.NONE
+var _weakness_multiplier := 1.5
+var _resistance_multiplier := 0.65
 
 
 func _init(maximum_health: int, current_health: int = -1) -> void:
@@ -52,9 +56,31 @@ func configure_affinities(
 	assert(new_weakness != new_resistance or new_weakness == AttackTypeScript.Kind.NONE, "Weakness and resistance must differ")
 	weakness_type = new_weakness
 	resistance_type = new_resistance
+	_weakness_multiplier = weakness_multiplier
+	_resistance_multiplier = resistance_multiplier
 	weakness_revealed = false
 	physical_damage_multiplier = _multiplier_for(AttackTypeScript.Kind.PHYSICAL, weakness_multiplier, resistance_multiplier)
 	magic_damage_multiplier = _multiplier_for(AttackTypeScript.Kind.MAGIC, weakness_multiplier, resistance_multiplier)
+
+
+func apply_temporary_resistance(attack_type: int) -> bool:
+	if attack_type not in [AttackTypeScript.Kind.PHYSICAL, AttackTypeScript.Kind.MAGIC]:
+		return false
+	temporary_resistance_type = attack_type
+	if attack_type == AttackTypeScript.Kind.PHYSICAL:
+		physical_damage_multiplier = _resistance_multiplier
+	else:
+		magic_damage_multiplier = _resistance_multiplier
+	return true
+
+
+func record_player_attack(attack_type: int) -> void:
+	last_attack_type = attack_type
+	if temporary_resistance_type == AttackTypeScript.Kind.NONE:
+		return
+	temporary_resistance_type = AttackTypeScript.Kind.NONE
+	physical_damage_multiplier = _multiplier_for(AttackTypeScript.Kind.PHYSICAL, _weakness_multiplier, _resistance_multiplier)
+	magic_damage_multiplier = _multiplier_for(AttackTypeScript.Kind.MAGIC, _weakness_multiplier, _resistance_multiplier)
 
 
 func reveal_weakness_from_attack(attack_type: int) -> RefCounted:

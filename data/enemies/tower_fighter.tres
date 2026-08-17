@@ -1,17 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
-
 [ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
-
 [resource]
 script = ExtResource("1")
-id = &"ruins_fighter"
-display_name = "Страж корней"
+id = &"tower_fighter"
+display_name = "Безмолвный клинок"
 archetype = "Боец"
-biome_id = &"ruins"
+biome_id = &"tower"
 battle_slot = 1
 weakness_type = 0
 intent_cycle = PackedInt32Array(0, 0)
-intent_multipliers = PackedFloat32Array(1, 1.5)
-special_title = "Усиленная атака"
+intent_multipliers = PackedFloat32Array(1, 1.6)
 visual_symbol = "⚔"
-visual_color = Color(0.35, 0.55, 0.28, 1)
+visual_color = Color(0.32, 0.38, 0.66, 1)

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ruins_warden"
+display_name = "Реликтовый часовой"
+archetype = "Щитоносец"
+biome_id = &"ruins"
+battle_slot = 10
+weakness_type = 1
+intent_cycle = PackedInt32Array(2, 0, 0)
+intent_multipliers = PackedFloat32Array(1, 1.2, 1.45)
+special_title = "Древний заслон"
+special_behavior = 2
+health_multiplier = 1.25
+visual_symbol = "⬟"
+visual_color = Color(0.34, 0.45, 0.3, 1)

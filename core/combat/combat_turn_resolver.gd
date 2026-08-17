@@ -23,6 +23,7 @@ func resolve(board_result: RefCounted, battle: RefCounted, enemy_action: Callabl
 	elif not board_result.magic_components.is_empty():
 		attack_type = AttackTypeScript.Kind.MAGIC
 	var reveal: RefCounted = battle.enemy.reveal_weakness_from_attack(attack_type)
+	battle.enemy.record_player_attack(attack_type)
 	result.weakness_revealed = reveal.revealed
 	result.weakness_hit = reveal.hit_weakness
 	result.weakness_inferred = reveal.inferred

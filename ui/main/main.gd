@@ -18,11 +18,7 @@ const UpgradeCatalogScript = preload("res://core/progression/upgrade_catalog.gd"
 const RelicDefinitionScript = preload("res://core/progression/relic_definition.gd")
 const EnemyFactoryScript = preload("res://core/enemies/enemy_factory.gd")
 const EnemyControllerScript = preload("res://core/enemies/enemy_controller.gd")
-const FIRST_BIOME_ENEMY_PATHS := [
-	"res://data/enemies/ruins_fighter.tres",
-	"res://data/enemies/ruins_healer.tres",
-	"res://data/enemies/ruins_curser.tres",
-]
+const EnemyCatalogScript = preload("res://core/enemies/enemy_catalog.gd")
 const FIRST_BOSS_PATH := "res://data/enemies/stone_guardian.tres"
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
@@ -31,7 +27,7 @@ const AUTO_CONTINUE_SECONDS := 0.65
 
 @export var rules: GameRules
 @export var tutorial_completed := true
-@export_range(1, 10, 1) var battle_number := 1
+@export_range(1, 30, 1) var battle_number := 1
 var run_hero: RefCounted
 
 @onready var board_view: Control = %BoardView
@@ -98,12 +94,11 @@ func _ready() -> void:
 			rules.hero_coin_multiplier,
 		)
 	hero.reset_battle_relics()
-	var enemy_path: String = (
-		FIRST_BOSS_PATH
+	var enemy_definition: Resource = (
+		load(FIRST_BOSS_PATH)
 		if battle_number % rules.boss_interval == 0
-		else FIRST_BIOME_ENEMY_PATHS[(battle_number - 1) % FIRST_BIOME_ENEMY_PATHS.size()]
+		else EnemyCatalogScript.new().for_battle(battle_number)
 	)
-	var enemy_definition: Resource = load(enemy_path)
 	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
 	_enemy_controller = EnemyControllerScript.new(enemy, _board, rules.maximum_empty_stones)
 	_battle = BattleStateScript.new(

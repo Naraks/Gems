@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
+[ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = &"ruins_duelist"
+display_name = "Клинок зарослей"
+archetype = "Боец"
+biome_id = &"ruins"
+battle_slot = 6
+weakness_type = 1
+intent_cycle = PackedInt32Array(0, 0, 0)
+intent_multipliers = PackedFloat32Array(0.9, 1.2, 1.55)
+damage_multiplier = 1.05
+visual_symbol = "†"
+visual_color = Color(0.3, 0.58, 0.26, 1)

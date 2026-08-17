@@ -71,7 +71,9 @@ func _show_current_node() -> void:
 			battle.battle_defeated.connect(_on_battle_defeated)
 			content.add_child(battle)
 			current_screen = battle
-			_show_encounter("БОСС" if run_state.current_kind == RunStateScript.NodeKind.BOSS else "ВРАГ", false)
+			var definition: Resource = battle._battle.enemy.definition
+			var kind_text := "БОСС" if run_state.current_kind == RunStateScript.NodeKind.BOSS else "ВРАГ"
+			_show_encounter(kind_text, false, definition)
 		RunStateScript.NodeKind.SHOP:
 			var shop = SHOP_SCENE.instantiate()
 			content.add_child(shop)
@@ -115,10 +117,12 @@ func _start_new_run() -> void:
 	_show_current_node()
 
 
-func _show_encounter(kind_text: String, is_merchant: bool) -> void:
+func _show_encounter(kind_text: String, is_merchant: bool, definition: Resource = null) -> void:
 	encounter_avatar.visible = true
-	encounter_avatar.color = Color("8b692f") if is_merchant else Color("852f2a")
-	encounter_label.text = ("☰\n" if is_merchant else "⚠\n") + kind_text
+	encounter_avatar.color = Color("8b692f") if is_merchant else definition.visual_color
+	var symbol: String = "☰" if is_merchant else definition.visual_symbol
+	var title: String = kind_text if is_merchant else "%s · %s" % [kind_text, definition.display_name.to_upper()]
+	encounter_label.text = "%s\n%s" % [symbol, title]
 	_play_travel_animation("Встреча: " + kind_text.to_lower())
 
 

@@ -2,6 +2,7 @@ class_name EnemyController
 extends RefCounted
 
 const EnemyIntentScript = preload("res://core/combat/enemy_intent.gd")
+const EnemyDefinitionScript = preload("res://core/enemies/enemy_definition.gd")
 const TileTypeScript = preload("res://core/board/tile_type.gd")
 
 var enemy: RefCounted
@@ -33,6 +34,8 @@ func _build_intent() -> RefCounted:
 	var multiplier: float = enemy.definition.intent_multipliers[turn_index]
 	match kind:
 		EnemyIntentScript.Kind.ATTACK:
+			if enemy.definition.archetype == "Берсерк" and float(enemy.health) / float(enemy.max_health) <= enemy.definition.berserk_health_threshold:
+				multiplier *= enemy.definition.berserk_damage_multiplier
 			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier))
 		EnemyIntentScript.Kind.HEAL:
 			return EnemyIntentScript.new(kind, ceili(enemy.base_damage * multiplier), "Лечение")
@@ -44,6 +47,11 @@ func _build_intent() -> RefCounted:
 
 
 func _perform_special(_battle: RefCounted, amount: int) -> void:
+	if enemy.definition.special_behavior == EnemyDefinitionScript.SpecialBehavior.SHIELD_LAST_ATTACK:
+		enemy.apply_temporary_resistance(enemy.last_attack_type)
+		return
+	if enemy.definition.special_behavior != EnemyDefinitionScript.SpecialBehavior.ADD_BLOCKERS:
+		return
 	var candidates: Array[Vector2i] = []
 	var empty_count := 0
 	for y in board.size.y:

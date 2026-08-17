@@ -1,17 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
-
 [ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
-
 [resource]
 script = ExtResource("1")
-id = &"ruins_healer"
-display_name = "Мшистый знахарь"
+id = &"tower_healer"
+display_name = "Астральный целитель"
 archetype = "Лекарь"
-biome_id = &"ruins"
+biome_id = &"tower"
 battle_slot = 2
 weakness_type = 1
 intent_cycle = PackedInt32Array(0, 1, 0)
-intent_multipliers = PackedFloat32Array(1, 1.25, 1)
+intent_multipliers = PackedFloat32Array(1, 1.35, 1.15)
 health_multiplier = 0.95
 visual_symbol = "✚"
-visual_color = Color(0.32, 0.62, 0.38, 1)
+visual_color = Color(0.42, 0.48, 0.82, 1)
