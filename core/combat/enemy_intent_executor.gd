@@ -7,6 +7,7 @@ const RelicDefinitionScript = preload("res://core/progression/relic_definition.g
 
 func execute(intent: RefCounted, battle: RefCounted) -> int:
 	assert(intent != null and battle != null, "Intent execution requires intent and battle")
+	battle.enemy_intent_delayed = false
 	match intent.kind:
 		EnemyIntentScript.Kind.ATTACK:
 			return battle.hero.take_damage(intent.value)
@@ -20,6 +21,7 @@ func execute(intent: RefCounted, battle: RefCounted) -> int:
 				and battle.hero.mirror_shard_available
 			):
 				battle.hero.mirror_shard_available = false
+				battle.enemy_intent_delayed = true
 				return 0
 			if intent.action.is_valid():
 				intent.action.call(battle, intent.value)

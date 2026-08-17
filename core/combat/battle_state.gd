@@ -8,6 +8,7 @@ var victory := false
 var defeat := false
 var level_up_pending := false
 var enemy_actions_executed := 0
+var enemy_intent_delayed := false
 
 
 func _init(hero_state: RefCounted, enemy_state: RefCounted) -> void:

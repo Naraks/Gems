@@ -41,6 +41,7 @@ func resolve(board_result: RefCounted, battle: RefCounted, enemy_action: Callabl
 		enemy_action.call(battle)
 		battle.enemy_actions_executed += 1
 		result.enemy_responded = true
+		result.enemy_intent_delayed = battle.enemy_intent_delayed
 
 	result.phase_order.append("final_checks")
 	_apply_final_checks(battle, result)

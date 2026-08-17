@@ -204,7 +204,10 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 	if result.enemy_responded:
 		feedback_events.append("intent")
 		await _pulse_intent()
-		if result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
+		if result.enemy_intent_delayed:
+			feedback_events.append("relic_delay")
+			await _float_feedback(enemy_feedback_label, "ЗЕРКАЛЬНЫЙ ОСКОЛОК · ЗАДЕРЖАНО", Color("#b9d7ff"))
+		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
 			feedback_events.append("enemy_attack")
 			await _float_feedback(hero_feedback_label, "−%d HP" % result.enemy_intent.value, Color("#ff6b5f"))
 		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.SPECIAL:
@@ -305,7 +308,8 @@ func _create_weakness_sound() -> AudioStreamWAV:
 
 func _perform_enemy_action(battle: RefCounted) -> void:
 	_intent_executor.execute(battle.enemy.current_intent, battle)
-	_enemy_controller.advance_intent()
+	if not battle.enemy_intent_delayed:
+		_enemy_controller.advance_intent()
 
 
 func _update_combat_status() -> void:

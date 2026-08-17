@@ -9,6 +9,7 @@ var magic_damage_applied := 0
 var healing_applied := 0
 var coins_granted := 0
 var enemy_responded := false
+var enemy_intent_delayed := false
 var victory := false
 var defeat := false
 var level_up_pending := false
