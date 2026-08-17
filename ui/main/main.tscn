@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/main/main.gd" id="1_main"]
+[ext_resource type="Resource" path="res://data/game_rules.tres" id="2_rules"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+rules = ExtResource("2_rules")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BoardArea" type="PanelContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 324)
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 60.0
+
+[node name="Placeholder" type="Label" parent="Layout/BoardArea"]
+layout_mode = 2
+text = "Поле 7×7"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TurnResultArea" type="PanelContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 43)
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 8.0
+
+[node name="Placeholder" type="Label" parent="Layout/TurnResultArea"]
+layout_mode = 2
+text = "Результат хода · Слабость"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CombatArea" type="PanelContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 173)
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 32.0
+
+[node name="Placeholder" type="Label" parent="Layout/CombatArea"]
+layout_mode = 2
+text = "Герой                         Враг"
+horizontal_alignment = 1
+vertical_alignment = 1
