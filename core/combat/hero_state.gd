@@ -10,6 +10,9 @@ var sword_power: float
 var magic_power: float
 var healing_power: float
 var coin_multiplier: float
+var cascade_bonus := 0.0
+var last_chance_available := false
+var weakness_multiplier := 1.5
 
 
 func _init(
@@ -34,7 +37,12 @@ func _init(
 func take_damage(amount: int) -> int:
 	assert(amount >= 0, "Damage cannot be negative")
 	var previous := health
-	health = maxi(0, health - amount)
+	var resulting_health := health - amount
+	if resulting_health <= 0 and health > 0 and last_chance_available:
+		health = 1
+		last_chance_available = false
+	else:
+		health = maxi(0, resulting_health)
 	return previous - health
 
 
@@ -60,3 +68,17 @@ func experience_for_next_level() -> int:
 
 func can_level_up() -> bool:
 	return experience >= experience_for_next_level()
+
+
+func add_experience(amount: int) -> void:
+	assert(amount >= 0, "Experience cannot be negative")
+	experience += amount
+
+
+func level_up() -> bool:
+	var required := experience_for_next_level()
+	if experience < required:
+		return false
+	experience -= required
+	level += 1
+	return true

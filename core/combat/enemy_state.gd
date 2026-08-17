@@ -12,6 +12,7 @@ var weakness_type := AttackTypeScript.Kind.NONE
 var resistance_type := AttackTypeScript.Kind.NONE
 var weakness_revealed := false
 var current_intent: RefCounted
+var experience_reward := 40
 
 
 func _init(maximum_health: int, current_health: int = -1) -> void:

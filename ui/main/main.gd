@@ -11,6 +11,7 @@ const EnemyIntentScript = preload("res://core/combat/enemy_intent.gd")
 const EnemyIntentExecutorScript = preload("res://core/combat/enemy_intent_executor.gd")
 const AttackTypeScript = preload("res://core/combat/attack_type.gd")
 const HeroStateScript = preload("res://core/combat/hero_state.gd")
+const UpgradeCatalogScript = preload("res://core/progression/upgrade_catalog.gd")
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
@@ -25,6 +26,7 @@ const SKIP_SPEED := 8.0
 @onready var pause_overlay: ColorRect = %PauseOverlay
 @onready var hero_health_label: Label = %HeroHealthLabel
 @onready var coins_label: Label = %CoinsLabel
+@onready var experience_label: Label = %ExperienceLabel
 @onready var enemy_health_label: Label = %EnemyHealthLabel
 @onready var enemy_intent_label: Label = %EnemyIntentLabel
 @onready var weakness_label: Label = %WeaknessLabel
@@ -35,6 +37,8 @@ const SKIP_SPEED := 8.0
 @onready var coin_feedback_label: Label = %CoinFeedbackLabel
 @onready var weakness_feedback_label: Label = %WeaknessFeedbackLabel
 @onready var weakness_sound: AudioStreamPlayer = %WeaknessSound
+@onready var level_up_overlay: ColorRect = %LevelUpOverlay
+@onready var upgrade_buttons: Array[Button] = [%UpgradeButton1, %UpgradeButton2, %UpgradeButton3]
 
 var _board: RefCounted
 var _board_resolver: RefCounted
@@ -43,6 +47,9 @@ var _turn_controller: RefCounted
 var _battle: RefCounted
 var _combat_resolver := CombatTurnResolverScript.new()
 var _intent_executor := EnemyIntentExecutorScript.new()
+var _upgrade_catalog := UpgradeCatalogScript.new()
+var _upgrade_choices: Array[RefCounted] = []
+var _victory_experience_granted := false
 var _feedback_active := false
 var _feedback_tweens: Array[Tween] = []
 var _feedback_speed := 1.0
@@ -57,23 +64,26 @@ func _ready() -> void:
 	_board_resolver = BoardResolverScript.new(rules)
 	_board_shuffler = BoardShufflerScript.new()
 	_turn_controller = BoardTurnControllerScript.new(_board, rules.minimum_match_size)
+	var hero = HeroStateScript.new(
+		rules.hero_max_health,
+		-1,
+		rules.hero_sword_power,
+		rules.hero_magic_power,
+		rules.hero_healing_power,
+		rules.hero_coin_multiplier,
+	)
 	var enemy = EnemyStateScript.new(rules.enemy_base_health)
-	enemy.configure_affinities(AttackTypeScript.Kind.PHYSICAL, AttackTypeScript.Kind.NONE, rules.weakness_multiplier, rules.boss_resistance_multiplier)
+	enemy.configure_affinities(AttackTypeScript.Kind.PHYSICAL, AttackTypeScript.Kind.NONE, hero.weakness_multiplier, rules.boss_resistance_multiplier)
 	enemy.current_intent = EnemyIntentScript.new(EnemyIntentScript.Kind.ATTACK, rules.enemy_base_damage)
 	_battle = BattleStateScript.new(
-		HeroStateScript.new(
-			rules.hero_max_health,
-			-1,
-			rules.hero_sword_power,
-			rules.hero_magic_power,
-			rules.hero_healing_power,
-			rules.hero_coin_multiplier,
-		),
+		hero,
 		enemy,
 	)
 	board_view.setup(_board)
 	board_view.swap_requested.connect(_on_swap_requested)
 	pause_button.pressed.connect(_toggle_pause)
+	for index in upgrade_buttons.size():
+		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
 	resized.connect(_apply_responsive_style)
 	weakness_sound.stream = _create_weakness_sound()
 	_apply_responsive_style()
@@ -90,6 +100,7 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 	var is_valid: bool = _turn_controller.finish_swap()
 	board_view.refresh()
 	if is_valid:
+		_board_resolver.cascade_bonus = _battle.hero.cascade_bonus
 		var resolution = _board_resolver.resolve(_board)
 		var combat_result = _combat_resolver.resolve(resolution, _battle, _perform_enemy_action)
 		var was_reshuffled: bool = _board_shuffler.reshuffle_if_stuck(_board, rules.minimum_match_size)
@@ -109,6 +120,7 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 		_update_combat_status()
 		if combat_result.victory:
 			turn_result_label.text += " · ПОБЕДА"
+			_grant_victory_experience()
 		elif combat_result.defeat:
 			turn_result_label.text += " · ПОРАЖЕНИЕ"
 	else:
@@ -251,9 +263,46 @@ func _update_combat_status() -> void:
 	battle_number_label.text = "Бой 1"
 	hero_health_label.text = "HP %d / %d" % [_battle.hero.health, _battle.hero.max_health]
 	coins_label.text = "Монеты: %d" % _battle.hero.coins
+	experience_label.text = "Уровень %d · Опыт %d / %d" % [
+		_battle.hero.level,
+		_battle.hero.experience,
+		_battle.hero.experience_for_next_level(),
+	]
 	enemy_health_label.text = "HP %d / %d" % [_battle.enemy.health, _battle.enemy.max_health]
 	enemy_intent_label.text = "Намерение: %s" % _battle.enemy.current_intent.display_text()
 	weakness_label.text = "Слабость: %s" % _battle.enemy.weakness_display()
+
+
+func _grant_victory_experience() -> void:
+	if _victory_experience_granted:
+		return
+	_victory_experience_granted = true
+	_battle.hero.add_experience(_battle.enemy.experience_reward)
+	_battle.level_up_pending = _battle.hero.can_level_up()
+	_update_combat_status()
+	if _battle.level_up_pending:
+		_show_level_up_choices()
+
+
+func _show_level_up_choices() -> void:
+	_upgrade_choices = _upgrade_catalog.draw_three()
+	for index in upgrade_buttons.size():
+		var upgrade = _upgrade_choices[index]
+		upgrade_buttons[index].text = "%s\n[%s]\n%s" % [upgrade.title, upgrade.rarity_name(), upgrade.description]
+	level_up_overlay.visible = true
+
+
+func _choose_upgrade(index: int) -> void:
+	if not level_up_overlay.visible or index < 0 or index >= _upgrade_choices.size():
+		return
+	_upgrade_catalog.apply(_upgrade_choices[index], _battle.hero)
+	_battle.hero.level_up()
+	_battle.level_up_pending = _battle.hero.can_level_up()
+	_update_combat_status()
+	if _battle.level_up_pending:
+		_show_level_up_choices()
+	else:
+		level_up_overlay.visible = false
 
 
 func _toggle_pause() -> void:
@@ -267,7 +316,7 @@ func _apply_responsive_style() -> void:
 	var compact := size.y < 420.0
 	var body_font_size := 14 if compact else 18
 	var title_font_size := 15 if compact else 20
-	for label in [hero_health_label, coins_label, enemy_health_label, enemy_intent_label, weakness_label, turn_result_label]:
+	for label in [hero_health_label, coins_label, experience_label, enemy_health_label, enemy_intent_label, weakness_label, turn_result_label]:
 		if label != null:
 			label.add_theme_font_size_override("font_size", body_font_size)
 	if battle_number_label != null:

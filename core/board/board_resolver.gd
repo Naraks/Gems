@@ -18,6 +18,7 @@ var _effect_resolver := TileEffectResolverScript.new()
 var _tile_generator: RefCounted
 var _tile_provider: Callable
 var _empty_stone_count := 0
+var cascade_bonus := 0.0
 
 
 func _init(rules: Resource, seed: int = 0, tile_provider: Callable = Callable()) -> void:
@@ -35,7 +36,7 @@ func resolve(board: RefCounted) -> RefCounted:
 		var matches := _match_finder.find_matches(board, _rules.minimum_match_size)
 		if matches.is_empty():
 			return result
-		var cascade_multiplier := CascadeStepScript.multiplier_for(cascade_index)
+		var cascade_multiplier := cascade_multiplier_for(cascade_index)
 		var effects = _effect_resolver.evaluate(board, matches, cascade_multiplier, _rules)
 		var removed_cells := _remove_effect_cells(board, matches, effects)
 		_empty_stone_count -= effects.cleared_empty_stones.size()
@@ -44,6 +45,13 @@ func resolve(board: RefCounted) -> RefCounted:
 	result.stable = false
 	push_error("Cascade resolution exceeded the safety limit")
 	return result
+
+
+func cascade_multiplier_for(cascade_index: int) -> float:
+	var multiplier := CascadeStepScript.multiplier_for(cascade_index)
+	if cascade_index > 1:
+		multiplier = minf(2.0, multiplier + cascade_bonus)
+	return multiplier
 
 
 func _remove_effect_cells(board: RefCounted, matches: Array, effects: RefCounted) -> Array[Vector2i]:
