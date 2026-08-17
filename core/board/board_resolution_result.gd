@@ -13,6 +13,7 @@ var physical_components: Array[float] = []
 var magic_components: Array[float] = []
 var healing_components: Array[float] = []
 var coin_components: Array[float] = []
+var enhanced_match_count := 0
 
 
 func add_step(step: RefCounted) -> void:
@@ -27,3 +28,6 @@ func add_step(step: RefCounted) -> void:
 	magic_components.append_array(step.effects.magic_components)
 	healing_components.append_array(step.effects.healing_components)
 	coin_components.append_array(step.effects.coin_components)
+	for match_group in step.matches:
+		if match_group.longest_line >= 4 or match_group.lines.size() > 1:
+			enhanced_match_count += 1

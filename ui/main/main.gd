@@ -12,6 +12,7 @@ const EnemyIntentExecutorScript = preload("res://core/combat/enemy_intent_execut
 const AttackTypeScript = preload("res://core/combat/attack_type.gd")
 const HeroStateScript = preload("res://core/combat/hero_state.gd")
 const UpgradeCatalogScript = preload("res://core/progression/upgrade_catalog.gd")
+const RelicDefinitionScript = preload("res://core/progression/relic_definition.gd")
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
@@ -101,6 +102,7 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 	board_view.refresh()
 	if is_valid:
 		_board_resolver.cascade_bonus = _battle.hero.cascade_bonus
+		_board_resolver.cascade_start_bonus = 0.10 if _battle.hero.has_relic(RelicDefinitionScript.Id.CASCADE_CLOVER) else 0.0
 		var resolution = _board_resolver.resolve(_board)
 		var combat_result = _combat_resolver.resolve(resolution, _battle, _perform_enemy_action)
 		var was_reshuffled: bool = _board_shuffler.reshuffle_if_stuck(_board, rules.minimum_match_size)
@@ -278,6 +280,7 @@ func _grant_victory_experience() -> void:
 		return
 	_victory_experience_granted = true
 	_battle.hero.add_experience(_battle.enemy.experience_reward)
+	_battle.hero.apply_victory_relics()
 	_battle.level_up_pending = _battle.hero.can_level_up()
 	_update_combat_status()
 	if _battle.level_up_pending:

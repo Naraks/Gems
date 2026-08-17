@@ -2,6 +2,7 @@ class_name EnemyIntentExecutor
 extends RefCounted
 
 const EnemyIntentScript = preload("res://core/combat/enemy_intent.gd")
+const RelicDefinitionScript = preload("res://core/progression/relic_definition.gd")
 
 
 func execute(intent: RefCounted, battle: RefCounted) -> int:
@@ -12,6 +13,14 @@ func execute(intent: RefCounted, battle: RefCounted) -> int:
 		EnemyIntentScript.Kind.HEAL:
 			return battle.enemy.heal(intent.value)
 		EnemyIntentScript.Kind.SPECIAL, EnemyIntentScript.Kind.PREPARE:
+			if (
+				intent.kind == EnemyIntentScript.Kind.SPECIAL
+				and battle.enemy.is_boss
+				and battle.hero.has_relic(RelicDefinitionScript.Id.MIRROR_SHARD)
+				and battle.hero.mirror_shard_available
+			):
+				battle.hero.mirror_shard_available = false
+				return 0
 			if intent.action.is_valid():
 				intent.action.call(battle, intent.value)
 			return intent.value

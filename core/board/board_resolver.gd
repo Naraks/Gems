@@ -19,6 +19,7 @@ var _tile_generator: RefCounted
 var _tile_provider: Callable
 var _empty_stone_count := 0
 var cascade_bonus := 0.0
+var cascade_start_bonus := 0.0
 
 
 func _init(rules: Resource, seed: int = 0, tile_provider: Callable = Callable()) -> void:
@@ -48,7 +49,7 @@ func resolve(board: RefCounted) -> RefCounted:
 
 
 func cascade_multiplier_for(cascade_index: int) -> float:
-	var multiplier := CascadeStepScript.multiplier_for(cascade_index)
+	var multiplier := CascadeStepScript.multiplier_for(cascade_index) + cascade_start_bonus
 	if cascade_index > 1:
 		multiplier = minf(2.0, multiplier + cascade_bonus)
 	return multiplier

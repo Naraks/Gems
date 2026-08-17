@@ -1,6 +1,8 @@
 class_name HeroState
 extends RefCounted
 
+const RelicDefinitionScript = preload("res://core/progression/relic_definition.gd")
+
 var max_health: int
 var health: int
 var coins := 0
@@ -13,6 +15,10 @@ var coin_multiplier: float
 var cascade_bonus := 0.0
 var last_chance_available := false
 var weakness_multiplier := 1.5
+var relic_ids: Array[int] = []
+var first_sword_relic_available := true
+var first_magic_relic_available := true
+var mirror_shard_available := true
 
 
 func _init(
@@ -82,3 +88,26 @@ func level_up() -> bool:
 	experience -= required
 	level += 1
 	return true
+
+
+func has_relic(relic_id: int) -> bool:
+	return relic_id in relic_ids
+
+
+func add_relic(relic_id: int) -> bool:
+	if has_relic(relic_id):
+		return false
+	relic_ids.append(relic_id)
+	return true
+
+
+func reset_battle_relics() -> void:
+	first_sword_relic_available = true
+	first_magic_relic_available = true
+	mirror_shard_available = true
+
+
+func apply_victory_relics() -> int:
+	if not has_relic(RelicDefinitionScript.Id.HEALER_FLASK):
+		return 0
+	return heal(ceili(max_health * 0.05))
