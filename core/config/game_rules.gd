@@ -31,6 +31,8 @@ extends Resource
 @export_range(0.0, 10.0, 0.01) var hero_coin_multiplier: float = 1.0
 
 @export_category("Combat")
+@export_range(1, 10000, 1) var enemy_base_health: int = 45
+@export_range(0, 1000, 1) var enemy_base_damage: int = 8
 @export_range(1.0, 10.0, 0.05) var weakness_multiplier: float = 1.5
 @export_range(0.0, 1.0, 0.05) var boss_resistance_multiplier: float = 0.65
 @export_range(1, 100, 1) var boss_interval: int = 10
@@ -51,5 +53,6 @@ func is_valid() -> bool:
 		and maximum_empty_stones < board_columns * board_rows
 		and is_equal_approx(generator_weight_total(), 1.0)
 		and hero_max_health > 0
+		and enemy_base_health > 0
 		and boss_interval > 0
 	)

@@ -57,7 +57,8 @@ layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 32.0
 
-[node name="Placeholder" type="Label" parent="Layout/CombatArea"]
+[node name="CombatStatusLabel" type="Label" parent="Layout/CombatArea"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Герой                         Враг"
 horizontal_alignment = 1
