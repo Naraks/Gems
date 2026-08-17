@@ -156,6 +156,114 @@ layout_mode = 2
 text = "Слабость: ?"
 horizontal_alignment = 1
 
+[node name="FeedbackLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BoardFlash" type="ColorRect" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+anchor_bottom = 0.6
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="WeaknessFlash" type="ColorRect" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.68
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.78, 0.18, 0)
+
+[node name="EnemyFeedbackLabel" type="Label" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.75
+anchor_top = 0.76
+anchor_right = 0.75
+anchor_bottom = 0.76
+offset_left = -100.0
+offset_top = -24.0
+offset_right = 100.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HeroFeedbackLabel" type="Label" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.25
+anchor_top = 0.76
+anchor_right = 0.25
+anchor_bottom = 0.76
+offset_left = -100.0
+offset_top = -24.0
+offset_right = 100.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CoinFeedbackLabel" type="Label" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_left = 0.25
+anchor_top = 0.92
+anchor_right = 0.25
+anchor_bottom = 0.92
+offset_left = -100.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeaknessFeedbackLabel" type="Label" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_left = 0.75
+anchor_top = 0.91
+anchor_right = 0.75
+anchor_bottom = 0.91
+offset_left = -140.0
+offset_top = -22.0
+offset_right = 140.0
+offset_bottom = 22.0
+theme_override_font_sizes/font_size = 24
+text = "СЛАБОСТЬ ×1.50"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeaknessSound" type="AudioStreamPlayer" parent="FeedbackLayer"]
+unique_name_in_owner = true
+
 [node name="PauseOverlay" type="ColorRect" parent="."]
 unique_name_in_owner = true
 visible = false
