@@ -28,7 +28,7 @@ theme_override_constants/separation = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 60.0
+size_flags_stretch_ratio = 65.0
 
 [node name="BoardLayout" type="VBoxContainer" parent="Layout/BoardArea"]
 layout_mode = 2
@@ -90,7 +90,7 @@ text_overrun_behavior = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 32.0
+size_flags_stretch_ratio = 27.0
 
 [node name="CombatMargin" type="MarginContainer" parent="Layout/CombatArea"]
 layout_mode = 2

@@ -58,6 +58,11 @@ func _run() -> void:
 	failed = _check(background.color.g > background.color.r and "Заросшие руины" in run_screen.node_title_label.text, "Run screen uses a readable green ruins palette and node title") or failed
 	failed = _check(run_screen.journey_hero.visible and run_screen.journey_stage.size.y > 0.0, "Hero remains visible on the persistent journey stage") or failed
 	failed = _check(run_screen.encounter_avatar.visible and "ВРАГ" in run_screen.encounter_label.text and run_screen.is_travelling, "Enemy encounter appears on the journey screen while the hero advances") or failed
+	var fixed_hero_x: float = run_screen.journey_hero.position.x
+	var moving_background_x: float = run_screen.road_marks.position.x
+	await create_timer(0.2).timeout
+	failed = _check(is_equal_approx(run_screen.journey_hero.position.x, fixed_hero_x), "Hero stays fixed while travelling") or failed
+	failed = _check(run_screen.road_marks.position.x < moving_background_x and run_screen.encounter_avatar.position.x < run_screen.journey_stage.size.x, "Background moves left while the encounter enters from the right") or failed
 	failed = _check(run_screen.current_screen.run_hero == ui_hero and run_screen.current_screen.battle_number == 1, "Battle screen receives persistent hero and node number") or failed
 	while ui_state.current_kind != RunStateScript.NodeKind.SHOP:
 		run_screen._on_battle_completed()

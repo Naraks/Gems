@@ -12,6 +12,8 @@ const SHOP_SCENE := preload("res://ui/shop/shop_screen.tscn")
 @onready var completion_summary: Label = %CompletionSummary
 @onready var journey_stage: Control = %JourneyStage
 @onready var journey_hero: ColorRect = %JourneyHero
+@onready var distant_ruins: Label = %DistantRuins
+@onready var road_marks: Label = %RoadMarks
 @onready var encounter_avatar: ColorRect = %EncounterAvatar
 @onready var encounter_label: Label = %EncounterLabel
 @onready var journey_status: Label = %JourneyStatus
@@ -89,13 +91,15 @@ func _play_travel_animation(arrival_text: String) -> void:
 		_journey_tween.kill()
 	is_travelling = true
 	journey_status.text = "Герой идёт дальше..."
-	var start_position := journey_hero.position
-	start_position.x = journey_stage.size.x * 0.08 - journey_hero.size.x * 0.5
-	journey_hero.position = start_position
+	distant_ruins.position.x = 0.0
+	road_marks.position.x = 0.0
+	encounter_avatar.position.x = journey_stage.size.x + 20.0
 	encounter_avatar.modulate.a = 0.0
 	_journey_tween = create_tween().set_parallel(true)
-	_journey_tween.tween_property(journey_hero, "position:x", journey_stage.size.x * 0.28 - journey_hero.size.x * 0.5, 0.45).set_trans(Tween.TRANS_SINE)
-	_journey_tween.tween_property(encounter_avatar, "modulate:a", 1.0, 0.28).set_delay(0.17)
+	_journey_tween.tween_property(distant_ruins, "position:x", -70.0, 0.45).set_trans(Tween.TRANS_LINEAR)
+	_journey_tween.tween_property(road_marks, "position:x", -120.0, 0.45).set_trans(Tween.TRANS_LINEAR)
+	_journey_tween.tween_property(encounter_avatar, "position:x", journey_stage.size.x * 0.72 - encounter_avatar.size.x * 0.5, 0.35).set_delay(0.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_journey_tween.tween_property(encounter_avatar, "modulate:a", 1.0, 0.25).set_delay(0.10)
 	_journey_tween.chain().tween_callback(func() -> void:
 		is_travelling = false
 		journey_status.text = arrival_text

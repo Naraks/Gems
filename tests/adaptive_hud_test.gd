@@ -16,7 +16,7 @@ func _run() -> void:
 	await process_frame
 
 	failed = _check(_has_required_hud(main), "HUD shows battle, HP, intent, weakness, coins and pause") or failed
-	failed = _check(_has_target_proportions(main), "HUD uses 60/8/32 logical height proportions") or failed
+	failed = _check(_has_target_proportions(main), "HUD prioritizes the match-3 board with 65/8/27 proportions") or failed
 	var pause_button := main.get_node("%PauseButton") as Button
 	failed = _check(pause_button.custom_minimum_size.y >= 44.0, "Pause touch target is at least 44 px high") or failed
 	pause_button.pressed.emit()
@@ -56,7 +56,7 @@ func _has_target_proportions(main: Control) -> bool:
 	var board_ratio: float = main.get_node("%BoardArea").size.y / total
 	var result_ratio: float = main.get_node("%TurnResultArea").size.y / total
 	var combat_ratio: float = main.get_node("%CombatArea").size.y / total
-	return absf(board_ratio - 0.60) < 0.03 and absf(result_ratio - 0.08) < 0.03 and absf(combat_ratio - 0.32) < 0.03
+	return absf(board_ratio - 0.65) < 0.03 and absf(result_ratio - 0.08) < 0.03 and absf(combat_ratio - 0.27) < 0.03
 
 
 func _check(condition: bool, description: String) -> bool:
