@@ -2,6 +2,7 @@ class_name BoardModel
 extends RefCounted
 
 const TileTypeScript = preload("res://core/board/tile_type.gd")
+const BoardMoveScript = preload("res://core/board/board_move.gd")
 
 var size: Vector2i
 var _cells: PackedInt32Array
@@ -41,6 +42,13 @@ func cells() -> PackedInt32Array:
 	return _cells.duplicate()
 
 
+func replace_cells(new_cells: PackedInt32Array) -> void:
+	assert(new_cells.size() == cell_count(), "Cell count must match board dimensions")
+	for tile in new_cells:
+		assert(TileTypeScript.is_valid(tile), "Unknown tile type")
+	_cells = new_cells.duplicate()
+
+
 func swap(first: Vector2i, second: Vector2i) -> void:
 	assert(contains(first) and contains(second), "Swap positions must be on the board")
 	var first_index := _index(first)
@@ -72,6 +80,11 @@ func has_match_at(position: Vector2i, minimum_size: int = 3) -> bool:
 
 
 func has_valid_move(minimum_size: int = 3) -> bool:
+	return not find_valid_moves(minimum_size).is_empty()
+
+
+func find_valid_moves(minimum_size: int = 3) -> Array:
+	var moves: Array = []
 	for y in size.y:
 		for x in size.x:
 			var current := Vector2i(x, y)
@@ -83,8 +96,8 @@ func has_valid_move(minimum_size: int = 3) -> bool:
 				var creates_match := has_match_at(current, minimum_size) or has_match_at(neighbor, minimum_size)
 				swap(current, neighbor)
 				if creates_match:
-					return true
-	return false
+					moves.append(BoardMoveScript.new(current, neighbor))
+	return moves
 
 
 func _index(position: Vector2i) -> int:
