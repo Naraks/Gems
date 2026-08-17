@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.1"
+  GODOT_STATUS: stable
+
+jobs:
+  verify:
+    name: Test and Web export
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install Godot and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          release="${GODOT_VERSION}-${GODOT_STATUS}"
+          base_url="https://github.com/godotengine/godot-builds/releases/download/${release}"
+          editor_archive="Godot_v${release}_linux.x86_64.zip"
+          templates_archive="Godot_v${release}_export_templates.tpz"
+
+          curl --fail --location --retry 3 --output "$editor_archive" "$base_url/$editor_archive"
+          curl --fail --location --retry 3 --output "$templates_archive" "$base_url/$templates_archive"
+          curl --fail --location --retry 3 --output SHA512-SUMS.txt "$base_url/SHA512-SUMS.txt"
+          grep -E " (${editor_archive}|${templates_archive})$" SHA512-SUMS.txt | sha512sum --check --strict
+
+          unzip -q "$editor_archive" -d "$RUNNER_TEMP/godot"
+          install -m 0755 "$RUNNER_TEMP/godot/Godot_v${release}_linux.x86_64" "$RUNNER_TEMP/godot-bin"
+
+          template_dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STATUS}"
+          mkdir -p "$template_dir" "$RUNNER_TEMP/godot-templates"
+          unzip -q "$templates_archive" -d "$RUNNER_TEMP/godot-templates"
+          cp -R "$RUNNER_TEMP/godot-templates/templates/." "$template_dir/"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Verify pinned Godot version
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-bin --version | tee godot-version.txt
+          grep -F "${GODOT_VERSION}.${GODOT_STATUS}" godot-version.txt
+
+      - name: Import project
+        run: godot-bin --headless --path . --import
+
+      - name: Parse GDScript
+        run: bash tools/check_gdscript.sh godot-bin
+
+      - name: Run headless tests
+        run: bash tools/run_tests.sh godot-bin
+
+      - name: Start main scene
+        run: godot-bin --headless --path . --quit-after 2
+
+      - name: Export Web release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/web
+          godot-bin --headless --path . --export-release Web build/web/index.html
+          test -s build/web/index.html
+          test -n "$(find build/web -maxdepth 1 -name '*.wasm' -print -quit)"
+          (cd build/web && zip -q -r ../gems-web.zip .)
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gems-web
+          path: build/gems-web.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: verify
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download verified Web artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: gems-web
+          path: release
+
+      - name: Publish release ZIP
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          asset="release/gems-web.zip"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$asset#Gems & Blades Web" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$asset#Gems & Blades Web" --verify-tag --generate-notes
+          fi
