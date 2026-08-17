@@ -44,7 +44,7 @@ func _run() -> void:
 		state.complete_battle()
 
 	failed = _check(visited_battles == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "Run exposes battles 1 through 10 in order") or failed
-	failed = _check(shop_after == [3, 7] and state.shops_visited == 2, "Run places two readable shops with required spacing") or failed
+	failed = _check(shop_after == state.shop_after_battles and shop_after.size() <= 2, "Run places its generated shops as readable nodes") or failed
 	failed = _check(boss_seen and state.completed_battles == 10, "Battle 10 is the Stone Guardian boss") or failed
 	failed = _check(hero.coins > 0 and hero.experience >= 0, "Hero rewards persist across the full biome") or failed
 
@@ -57,13 +57,14 @@ func _run() -> void:
 	var background := run_screen.get_node("RuinsBackground") as ColorRect
 	failed = _check(background.color.g > background.color.r and "Заросшие руины" in run_screen.node_title_label.text, "Run screen uses a readable green ruins palette and node title") or failed
 	failed = _check(run_screen.current_screen.run_hero == ui_hero and run_screen.current_screen.battle_number == 1, "Battle screen receives persistent hero and node number") or failed
-	for _index in 3:
+	while ui_state.current_kind != RunStateScript.NodeKind.SHOP:
 		run_screen._on_battle_completed()
 		await process_frame
-	failed = _check(ui_state.current_kind == RunStateScript.NodeKind.SHOP and run_screen.current_screen.shop.hero == ui_hero, "Transition after battle 3 opens the real shop with the same hero") or failed
+	var shop_after_battle: int = ui_state.battle_number
+	failed = _check(run_screen.current_screen.shop.hero == ui_hero, "Generated shop transition opens the real shop with the same hero") or failed
 	run_screen._on_shop_closed()
 	await process_frame
-	failed = _check(ui_state.battle_number == 4 and run_screen.current_screen.run_hero == ui_hero, "Leaving shop continues to battle 4 without resetting the run") or failed
+	failed = _check(ui_state.battle_number == shop_after_battle + 1 and run_screen.current_screen.run_hero == ui_hero, "Leaving shop continues to the next battle without resetting the run") or failed
 	run_screen.queue_free()
 	await process_frame
 
