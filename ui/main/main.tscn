@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/main/main.gd" id="1_main"]
 [ext_resource type="Resource" path="res://data/game_rules.tres" id="2_rules"]
+[ext_resource type="Script" path="res://ui/board/board_view.gd" id="3_board_view"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -27,11 +28,15 @@ layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 60.0
 
-[node name="Placeholder" type="Label" parent="Layout/BoardArea"]
+[node name="BoardCenter" type="CenterContainer" parent="Layout/BoardArea"]
 layout_mode = 2
-text = "Поле 7×7"
-horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="BoardView" type="Control" parent="Layout/BoardArea/BoardCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(310, 310)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+script = ExtResource("3_board_view")
 
 [node name="TurnResultArea" type="PanelContainer" parent="Layout"]
 custom_minimum_size = Vector2(0, 43)
