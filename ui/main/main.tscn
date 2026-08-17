@@ -44,7 +44,8 @@ layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 8.0
 
-[node name="Placeholder" type="Label" parent="Layout/TurnResultArea"]
+[node name="TurnResultLabel" type="Label" parent="Layout/TurnResultArea"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Результат хода · Слабость"
 horizontal_alignment = 1
