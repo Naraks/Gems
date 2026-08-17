@@ -3,19 +3,17 @@ extends RefCounted
 
 const BoardModelScript = preload("res://core/board/board_model.gd")
 const TileTypeScript = preload("res://core/board/tile_type.gd")
+const TileGeneratorScript = preload("res://core/board/tile_generator.gd")
 const MAX_GENERATION_ATTEMPTS := 256
 
 var _rules: Resource
-var _random := RandomNumberGenerator.new()
+var _tile_generator: RefCounted
 
 
 func _init(rules: Resource, seed: int = 0) -> void:
 	assert(rules != null and rules.is_valid(), "BoardGenerator requires valid GameRules")
 	_rules = rules
-	if seed == 0:
-		_random.randomize()
-	else:
-		_random.seed = seed
+	_tile_generator = TileGeneratorScript.new(rules, seed)
 
 
 func generate_starting_board() -> RefCounted:
@@ -42,16 +40,14 @@ func _generate_match_free_board() -> RefCounted:
 
 func _pick_tile(board: RefCounted, position: Vector2i, empty_stone_count: int) -> int:
 	var candidates: Array[int] = []
-	var weights: Array[float] = []
 	for tile in TileTypeScript.COUNT:
 		if tile == TileTypeScript.Value.EMPTY_STONE and empty_stone_count >= _rules.maximum_empty_stones:
 			continue
 		if _would_create_match(board, position, tile):
 			continue
 		candidates.append(tile)
-		weights.append(_weight_for(tile))
 	assert(not candidates.is_empty(), "At least one tile type must be available")
-	return candidates[_weighted_index(weights)]
+	return _tile_generator.pick_from(candidates)
 
 
 func _would_create_match(board: RefCounted, position: Vector2i, tile: int) -> bool:
@@ -65,31 +61,3 @@ func _would_create_match(board: RefCounted, position: Vector2i, tile: int) -> bo
 	for offset in range(1, required_neighbors + 1):
 		vertical_match = vertical_match and board.get_cell(position - Vector2i(0, offset)) == tile
 	return horizontal_match or vertical_match
-
-
-func _weighted_index(weights: Array[float]) -> int:
-	var total := 0.0
-	for weight in weights:
-		total += weight
-	var roll := _random.randf() * total
-	for index in weights.size():
-		roll -= weights[index]
-		if roll <= 0.0:
-			return index
-	return weights.size() - 1
-
-
-func _weight_for(tile: int) -> float:
-	match tile:
-		TileTypeScript.Value.SWORD:
-			return _rules.sword_weight
-		TileTypeScript.Value.MAGIC:
-			return _rules.magic_weight
-		TileTypeScript.Value.HEART:
-			return _rules.heart_weight
-		TileTypeScript.Value.COIN:
-			return _rules.coin_weight
-		TileTypeScript.Value.EMPTY_STONE:
-			return _rules.empty_stone_weight
-		_:
-			return 0.0
