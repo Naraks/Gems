@@ -1,5 +1,7 @@
 extends Control
 
+signal battle_completed
+
 const BoardGeneratorScript = preload("res://core/board/board_generator.gd")
 const BoardResolverScript = preload("res://core/board/board_resolver.gd")
 const BoardShufflerScript = preload("res://core/board/board_shuffler.gd")
@@ -28,6 +30,7 @@ const SKIP_SPEED := 8.0
 @export var rules: GameRules
 @export var tutorial_completed := true
 @export_range(1, 10, 1) var battle_number := 1
+var run_hero: RefCounted
 
 @onready var board_view: Control = %BoardView
 @onready var turn_result_label: Label = %TurnResultLabel
@@ -51,6 +54,9 @@ const SKIP_SPEED := 8.0
 @onready var weakness_sound: AudioStreamPlayer = %WeaknessSound
 @onready var special_feedback_label: Label = %SpecialFeedbackLabel
 @onready var level_up_overlay: ColorRect = %LevelUpOverlay
+@onready var battle_transition_overlay: ColorRect = %BattleTransitionOverlay
+@onready var battle_reward_label: Label = %BattleRewardLabel
+@onready var continue_run_button: Button = %ContinueRunButton
 @onready var upgrade_buttons: Array[Button] = [%UpgradeButton1, %UpgradeButton2, %UpgradeButton3]
 
 var _board: RefCounted
@@ -78,14 +84,17 @@ func _ready() -> void:
 	_board_resolver = BoardResolverScript.new(rules)
 	_board_shuffler = BoardShufflerScript.new()
 	_turn_controller = BoardTurnControllerScript.new(_board, rules.minimum_match_size)
-	var hero = HeroStateScript.new(
-		rules.hero_max_health,
-		-1,
-		rules.hero_sword_power,
-		rules.hero_magic_power,
-		rules.hero_healing_power,
-		rules.hero_coin_multiplier,
-	)
+	var hero = run_hero
+	if hero == null:
+		hero = HeroStateScript.new(
+			rules.hero_max_health,
+			-1,
+			rules.hero_sword_power,
+			rules.hero_magic_power,
+			rules.hero_healing_power,
+			rules.hero_coin_multiplier,
+		)
+	hero.reset_battle_relics()
 	var enemy_path: String = (
 		FIRST_BOSS_PATH
 		if battle_number % rules.boss_interval == 0
@@ -101,6 +110,7 @@ func _ready() -> void:
 	board_view.setup(_board)
 	board_view.swap_requested.connect(_on_swap_requested)
 	pause_button.pressed.connect(_toggle_pause)
+	continue_run_button.pressed.connect(func() -> void: battle_completed.emit())
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
 	resized.connect(_apply_responsive_style)
@@ -321,6 +331,11 @@ func _grant_victory_experience() -> void:
 	_battle.hero.add_experience(_battle.enemy.experience_reward)
 	_battle.hero.add_coins(_battle.enemy.base_coin_reward)
 	_battle.hero.apply_victory_relics()
+	battle_reward_label.text = "+%d опыта · +%d монет" % [
+		_battle.enemy.experience_reward,
+		_battle.enemy.base_coin_reward,
+	]
+	battle_transition_overlay.visible = true
 	_battle.level_up_pending = _battle.hero.can_level_up()
 	_update_combat_status()
 	if _battle.level_up_pending:

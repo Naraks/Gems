@@ -1,0 +1,93 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/run/first_biome_run.gd" id="1_run"]
+
+[node name="FirstBiomeRun" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_run")
+
+[node name="RuinsBackground" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.055, 0.12, 0.09, 1)
+
+[node name="RuinsGlow" type="ColorRect" parent="."]
+layout_mode = 1
+anchor_left = 0.08
+anchor_top = 0.12
+anchor_right = 0.92
+anchor_bottom = 0.88
+color = Color(0.16, 0.31, 0.18, 0.32)
+mouse_filter = 2
+
+[node name="NodeTitleLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 36.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.77, 0.9, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "Заросшие руины · Бой 1/10"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RunContent" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 36.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BiomeComplete" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.08, 0.055, 0.96)
+
+[node name="CompleteLayout" type="VBoxContainer" parent="BiomeComplete"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -100.0
+offset_right = 260.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="BiomeComplete/CompleteLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.95, 0.62, 1)
+theme_override_font_sizes/font_size = 30
+text = "ЗАРОСШИЕ РУИНЫ ПРОЙДЕНЫ"
+horizontal_alignment = 1
+
+[node name="CompletionSummary" type="Label" parent="BiomeComplete/CompleteLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "10 боёв завершено"
+horizontal_alignment = 1

@@ -294,6 +294,52 @@ vertical_alignment = 1
 [node name="WeaknessSound" type="AudioStreamPlayer" parent="FeedbackLayer"]
 unique_name_in_owner = true
 
+[node name="BattleTransitionOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.035, 0.075, 0.055, 0.94)
+
+[node name="TransitionLayout" type="VBoxContainer" parent="BattleTransitionOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -90.0
+offset_right = 230.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+
+[node name="TransitionTitle" type="Label" parent="BattleTransitionOverlay/TransitionLayout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "ПОБЕДА"
+horizontal_alignment = 1
+
+[node name="BattleRewardLabel" type="Label" parent="BattleTransitionOverlay/TransitionLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "+18 опыта · +5 монет"
+horizontal_alignment = 1
+
+[node name="ContinueRunButton" type="Button" parent="BattleTransitionOverlay/TransitionLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 48)
+layout_mode = 2
+text = "К следующему узлу"
+
 [node name="LevelUpOverlay" type="ColorRect" parent="."]
 unique_name_in_owner = true
 visible = false
