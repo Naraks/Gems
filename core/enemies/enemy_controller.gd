@@ -53,7 +53,7 @@ func _perform_special(_battle: RefCounted, amount: int) -> void:
 				empty_count += 1
 			else:
 				candidates.append(position)
-	var allowed := mini(amount, mini(maximum_empty_stones - empty_count, candidates.size()))
+	var allowed := mini(amount, mini(maxi(0, maximum_empty_stones - empty_count), candidates.size()))
 	for _index in allowed:
 		var picked := _random.randi_range(0, candidates.size() - 1)
 		board.set_cell(candidates.pop_at(picked), TileTypeScript.Value.EMPTY_STONE)

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/enemies/enemy_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stone_guardian"
+display_name = "Каменный страж"
+archetype = "Босс"
+weakness_type = 1
+resistance_type = 0
+is_boss = true
+intent_cycle = PackedInt32Array(0, 2, 0)
+intent_multipliers = PackedFloat32Array(1, 1, 1)
+special_title = "Подготовка: Каменный обвал"
+special_value = 3

@@ -163,6 +163,12 @@ layout_mode = 2
 text = "Слабость: ?"
 horizontal_alignment = 1
 
+[node name="ResistanceLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Сопротивление: нет"
+horizontal_alignment = 1
+
 [node name="FeedbackLayer" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
@@ -265,6 +271,23 @@ offset_right = 140.0
 offset_bottom = 22.0
 theme_override_font_sizes/font_size = 24
 text = "СЛАБОСТЬ ×1.50"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpecialFeedbackLabel" type="Label" parent="FeedbackLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.28
+anchor_right = 0.5
+anchor_bottom = 0.28
+offset_left = -210.0
+offset_top = -24.0
+offset_right = 210.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 26
+text = "КАМЕННЫЙ ОБВАЛ · +3 ПУСТЫХ КАМНЯ"
 horizontal_alignment = 1
 vertical_alignment = 1
 

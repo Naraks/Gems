@@ -20,6 +20,7 @@ const FIRST_BIOME_ENEMY_PATHS := [
 	"res://data/enemies/ruins_healer.tres",
 	"res://data/enemies/ruins_curser.tres",
 ]
+const FIRST_BOSS_PATH := "res://data/enemies/stone_guardian.tres"
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
@@ -40,6 +41,7 @@ const SKIP_SPEED := 8.0
 @onready var enemy_title_label: Label = %EnemyTitleLabel
 @onready var enemy_intent_label: Label = %EnemyIntentLabel
 @onready var weakness_label: Label = %WeaknessLabel
+@onready var resistance_label: Label = %ResistanceLabel
 @onready var board_flash: ColorRect = %BoardFlash
 @onready var weakness_flash: ColorRect = %WeaknessFlash
 @onready var enemy_feedback_label: Label = %EnemyFeedbackLabel
@@ -47,6 +49,7 @@ const SKIP_SPEED := 8.0
 @onready var coin_feedback_label: Label = %CoinFeedbackLabel
 @onready var weakness_feedback_label: Label = %WeaknessFeedbackLabel
 @onready var weakness_sound: AudioStreamPlayer = %WeaknessSound
+@onready var special_feedback_label: Label = %SpecialFeedbackLabel
 @onready var level_up_overlay: ColorRect = %LevelUpOverlay
 @onready var upgrade_buttons: Array[Button] = [%UpgradeButton1, %UpgradeButton2, %UpgradeButton3]
 
@@ -83,7 +86,11 @@ func _ready() -> void:
 		rules.hero_healing_power,
 		rules.hero_coin_multiplier,
 	)
-	var enemy_path: String = FIRST_BIOME_ENEMY_PATHS[(battle_number - 1) % FIRST_BIOME_ENEMY_PATHS.size()]
+	var enemy_path: String = (
+		FIRST_BOSS_PATH
+		if battle_number % rules.boss_interval == 0
+		else FIRST_BIOME_ENEMY_PATHS[(battle_number - 1) % FIRST_BIOME_ENEMY_PATHS.size()]
+	)
 	var enemy_definition: Resource = load(enemy_path)
 	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
 	_enemy_controller = EnemyControllerScript.new(enemy, _board, rules.maximum_empty_stones)
@@ -190,6 +197,9 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 		if result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
 			feedback_events.append("enemy_attack")
 			await _float_feedback(hero_feedback_label, "−%d HP" % result.enemy_intent.value, Color("#ff6b5f"))
+		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.SPECIAL:
+			feedback_events.append("boss_special")
+			await _show_special_feedback(result.enemy_intent)
 	_feedback_active = false
 	_feedback_tweens.clear()
 
@@ -245,6 +255,21 @@ func _pulse_intent() -> void:
 	await tween.finished
 
 
+func _show_special_feedback(intent: RefCounted) -> void:
+	special_feedback_label.text = "%s · +%d" % [intent.title.to_upper(), intent.value]
+	special_feedback_label.modulate = Color("#d8d1c4")
+	special_feedback_label.visible = true
+	board_flash.visible = true
+	board_flash.color = Color(0.55, 0.52, 0.46, 0.0)
+	var tween := _new_feedback_tween()
+	tween.tween_property(board_flash, "color:a", 0.38, FEEDBACK_SECONDS * 0.4)
+	tween.tween_property(board_flash, "color:a", 0.0, FEEDBACK_SECONDS * 0.6)
+	tween.parallel().tween_property(special_feedback_label, "modulate:a", 0.0, FEEDBACK_SECONDS * 0.6)
+	await tween.finished
+	board_flash.visible = false
+	special_feedback_label.visible = false
+
+
 func _new_feedback_tween() -> Tween:
 	var tween := create_tween()
 	tween.set_speed_scale(_feedback_speed)
@@ -286,6 +311,7 @@ func _update_combat_status() -> void:
 	enemy_title_label.text = "%s · %s" % [_battle.enemy.definition.display_name, _battle.enemy.definition.archetype]
 	enemy_intent_label.text = "Намерение: %s" % _battle.enemy.current_intent.display_text()
 	weakness_label.text = "Слабость: %s" % _battle.enemy.weakness_display()
+	resistance_label.text = "Сопротивление: %s" % AttackTypeScript.display_name(_battle.enemy.resistance_type)
 
 
 func _grant_victory_experience() -> void:
@@ -333,7 +359,7 @@ func _apply_responsive_style() -> void:
 	var compact := size.y < 420.0
 	var body_font_size := 14 if compact else 18
 	var title_font_size := 15 if compact else 20
-	for label in [hero_health_label, coins_label, experience_label, enemy_health_label, enemy_intent_label, weakness_label, turn_result_label]:
+	for label in [hero_health_label, coins_label, experience_label, enemy_health_label, enemy_intent_label, weakness_label, resistance_label, turn_result_label]:
 		if label != null:
 			label.add_theme_font_size_override("font_size", body_font_size)
 	if battle_number_label != null:
