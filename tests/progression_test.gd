@@ -59,6 +59,7 @@ func _run() -> void:
 	var main = (load(MAIN_SCENE) as PackedScene).instantiate()
 	root.add_child(main)
 	await process_frame
+	main._battle.enemy.experience_reward = 40
 	main._grant_victory_experience()
 	var visible_ids := {}
 	for upgrade in main._upgrade_choices:

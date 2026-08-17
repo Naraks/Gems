@@ -16,3 +16,4 @@ var weakness_revealed := false
 var weakness_hit := false
 var weakness_inferred := false
 var weakness_type := AttackTypeScript.Kind.NONE
+var enemy_intent: RefCounted

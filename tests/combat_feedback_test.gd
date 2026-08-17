@@ -21,6 +21,7 @@ func _run() -> void:
 	result.weakness_revealed = true
 	result.weakness_hit = true
 	result.enemy_responded = true
+	result.enemy_intent = main._battle.enemy.current_intent
 	await main._play_combat_feedback(result, 2)
 	failed = _check(
 		main.feedback_events == PackedStringArray(["board", "enemy_damage", "hero_heal", "coins", "weakness", "intent", "enemy_attack"]),

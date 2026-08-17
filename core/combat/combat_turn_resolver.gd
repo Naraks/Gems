@@ -37,6 +37,7 @@ func resolve(board_result: RefCounted, battle: RefCounted, enemy_action: Callabl
 
 	if not battle.enemy.is_defeated() and enemy_action.is_valid():
 		result.phase_order.append("enemy_response")
+		result.enemy_intent = battle.enemy.current_intent
 		enemy_action.call(battle)
 		battle.enemy_actions_executed += 1
 		result.enemy_responded = true

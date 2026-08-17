@@ -13,12 +13,20 @@ const AttackTypeScript = preload("res://core/combat/attack_type.gd")
 const HeroStateScript = preload("res://core/combat/hero_state.gd")
 const UpgradeCatalogScript = preload("res://core/progression/upgrade_catalog.gd")
 const RelicDefinitionScript = preload("res://core/progression/relic_definition.gd")
+const EnemyFactoryScript = preload("res://core/enemies/enemy_factory.gd")
+const EnemyControllerScript = preload("res://core/enemies/enemy_controller.gd")
+const FIRST_BIOME_ENEMY_PATHS := [
+	"res://data/enemies/ruins_fighter.tres",
+	"res://data/enemies/ruins_healer.tres",
+	"res://data/enemies/ruins_curser.tres",
+]
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
 
 @export var rules: GameRules
 @export var tutorial_completed := true
+@export_range(1, 10, 1) var battle_number := 1
 
 @onready var board_view: Control = %BoardView
 @onready var turn_result_label: Label = %TurnResultLabel
@@ -29,6 +37,7 @@ const SKIP_SPEED := 8.0
 @onready var coins_label: Label = %CoinsLabel
 @onready var experience_label: Label = %ExperienceLabel
 @onready var enemy_health_label: Label = %EnemyHealthLabel
+@onready var enemy_title_label: Label = %EnemyTitleLabel
 @onready var enemy_intent_label: Label = %EnemyIntentLabel
 @onready var weakness_label: Label = %WeaknessLabel
 @onready var board_flash: ColorRect = %BoardFlash
@@ -51,6 +60,7 @@ var _intent_executor := EnemyIntentExecutorScript.new()
 var _upgrade_catalog := UpgradeCatalogScript.new()
 var _upgrade_choices: Array[RefCounted] = []
 var _victory_experience_granted := false
+var _enemy_controller: RefCounted
 var _feedback_active := false
 var _feedback_tweens: Array[Tween] = []
 var _feedback_speed := 1.0
@@ -73,9 +83,10 @@ func _ready() -> void:
 		rules.hero_healing_power,
 		rules.hero_coin_multiplier,
 	)
-	var enemy = EnemyStateScript.new(rules.enemy_base_health)
-	enemy.configure_affinities(AttackTypeScript.Kind.PHYSICAL, AttackTypeScript.Kind.NONE, hero.weakness_multiplier, rules.boss_resistance_multiplier)
-	enemy.current_intent = EnemyIntentScript.new(EnemyIntentScript.Kind.ATTACK, rules.enemy_base_damage)
+	var enemy_path: String = FIRST_BIOME_ENEMY_PATHS[(battle_number - 1) % FIRST_BIOME_ENEMY_PATHS.size()]
+	var enemy_definition: Resource = load(enemy_path)
+	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
+	_enemy_controller = EnemyControllerScript.new(enemy, _board, rules.maximum_empty_stones)
 	_battle = BattleStateScript.new(
 		hero,
 		enemy,
@@ -176,9 +187,9 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 	if result.enemy_responded:
 		feedback_events.append("intent")
 		await _pulse_intent()
-		if _battle.enemy.current_intent.kind == EnemyIntentScript.Kind.ATTACK:
+		if result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
 			feedback_events.append("enemy_attack")
-			await _float_feedback(hero_feedback_label, "−%d HP" % _battle.enemy.current_intent.value, Color("#ff6b5f"))
+			await _float_feedback(hero_feedback_label, "−%d HP" % result.enemy_intent.value, Color("#ff6b5f"))
 	_feedback_active = false
 	_feedback_tweens.clear()
 
@@ -259,10 +270,11 @@ func _create_weakness_sound() -> AudioStreamWAV:
 
 func _perform_enemy_action(battle: RefCounted) -> void:
 	_intent_executor.execute(battle.enemy.current_intent, battle)
+	_enemy_controller.advance_intent()
 
 
 func _update_combat_status() -> void:
-	battle_number_label.text = "Бой 1"
+	battle_number_label.text = "Бой %d" % battle_number
 	hero_health_label.text = "HP %d / %d" % [_battle.hero.health, _battle.hero.max_health]
 	coins_label.text = "Монеты: %d" % _battle.hero.coins
 	experience_label.text = "Уровень %d · Опыт %d / %d" % [
@@ -271,6 +283,7 @@ func _update_combat_status() -> void:
 		_battle.hero.experience_for_next_level(),
 	]
 	enemy_health_label.text = "HP %d / %d" % [_battle.enemy.health, _battle.enemy.max_health]
+	enemy_title_label.text = "%s · %s" % [_battle.enemy.definition.display_name, _battle.enemy.definition.archetype]
 	enemy_intent_label.text = "Намерение: %s" % _battle.enemy.current_intent.display_text()
 	weakness_label.text = "Слабость: %s" % _battle.enemy.weakness_display()
 
@@ -280,6 +293,7 @@ func _grant_victory_experience() -> void:
 		return
 	_victory_experience_granted = true
 	_battle.hero.add_experience(_battle.enemy.experience_reward)
+	_battle.hero.add_coins(_battle.enemy.base_coin_reward)
 	_battle.hero.apply_victory_relics()
 	_battle.level_up_pending = _battle.hero.can_level_up()
 	_update_combat_status()
