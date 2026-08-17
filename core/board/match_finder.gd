@@ -74,11 +74,13 @@ func _runs_intersect(first: Dictionary, second: Dictionary) -> bool:
 
 func _build_group(runs: Array, indices: Array[int]) -> RefCounted:
 	var unique_cells := {}
+	var group_lines: Array = []
 	var has_horizontal := false
 	var has_vertical := false
 	var longest_line := 0
 	for index in indices:
 		var run: Dictionary = runs[index]
+		group_lines.append(run.duplicate(true))
 		has_horizontal = has_horizontal or run.horizontal
 		has_vertical = has_vertical or not run.horizontal
 		longest_line = maxi(longest_line, run.length)
@@ -97,4 +99,4 @@ func _build_group(runs: Array, indices: Array[int]) -> RefCounted:
 		shape = MatchShapeScript.Value.T_OR_L
 	elif longest_line == 4:
 		shape = MatchShapeScript.Value.LINE_4
-	return MatchGroupScript.new(runs[indices[0]].tile, cells, shape, longest_line)
+	return MatchGroupScript.new(runs[indices[0]].tile, cells, shape, longest_line, group_lines)

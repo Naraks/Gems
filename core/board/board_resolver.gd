@@ -5,6 +5,7 @@ const BoardCollapserScript = preload("res://core/board/board_collapser.gd")
 const BoardResolutionResultScript = preload("res://core/board/board_resolution_result.gd")
 const CascadeStepScript = preload("res://core/board/cascade_step.gd")
 const MatchFinderScript = preload("res://core/board/match_finder.gd")
+const TileEffectResolverScript = preload("res://core/board/tile_effect_resolver.gd")
 const TileGeneratorScript = preload("res://core/board/tile_generator.gd")
 const TileTypeScript = preload("res://core/board/tile_type.gd")
 const MAX_CASCADE_STEPS := 100
@@ -13,6 +14,7 @@ const EMPTY_CELL := -1
 var _rules: Resource
 var _match_finder := MatchFinderScript.new()
 var _collapser := BoardCollapserScript.new()
+var _effect_resolver := TileEffectResolverScript.new()
 var _tile_generator: RefCounted
 var _tile_provider: Callable
 var _empty_stone_count := 0
@@ -33,19 +35,24 @@ func resolve(board: RefCounted) -> RefCounted:
 		var matches := _match_finder.find_matches(board, _rules.minimum_match_size)
 		if matches.is_empty():
 			return result
-		var removed_cells := _remove_matches(board, matches)
+		var cascade_multiplier := CascadeStepScript.multiplier_for(cascade_index)
+		var effects = _effect_resolver.evaluate(board, matches, cascade_multiplier, _rules)
+		var removed_cells := _remove_effect_cells(board, matches, effects)
+		_empty_stone_count -= effects.cleared_empty_stones.size()
 		var spawned := _collapser.collapse_and_refill(board, _next_tile)
-		result.add_step(CascadeStepScript.new(cascade_index, matches, removed_cells, spawned))
+		result.add_step(CascadeStepScript.new(cascade_index, matches, removed_cells, spawned, effects))
 	result.stable = false
 	push_error("Cascade resolution exceeded the safety limit")
 	return result
 
 
-func _remove_matches(board: RefCounted, matches: Array) -> Array[Vector2i]:
+func _remove_effect_cells(board: RefCounted, matches: Array, effects: RefCounted) -> Array[Vector2i]:
 	var unique_cells := {}
 	for match_group in matches:
 		for cell in match_group.cells:
 			unique_cells[cell] = true
+	for blocker in effects.cleared_empty_stones:
+		unique_cells[blocker] = true
 	var removed: Array[Vector2i] = []
 	for cell in unique_cells:
 		board.set_cell(cell, EMPTY_CELL)

@@ -45,7 +45,13 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 		turn_result_label.text = "Ход %d · каскадов: %d%s" % [
 			_turn_controller.move_count,
 			resolution.steps.size(),
-			" · поле перемешано" if was_reshuffled else "",
+			" · ⚔%d ✦%d ♥%d ◉%d%s" % [
+				resolution.total_physical_damage,
+				resolution.total_magic_damage,
+				resolution.total_healing,
+				resolution.total_coins,
+				" · поле перемешано" if was_reshuffled else "",
+			],
 		]
 	else:
 		turn_result_label.text = "Недопустимый ход"

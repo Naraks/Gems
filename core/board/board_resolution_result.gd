@@ -4,8 +4,18 @@ extends RefCounted
 var steps: Array = []
 var stable := true
 var total_removed := 0
+var total_physical_damage := 0
+var total_magic_damage := 0
+var total_healing := 0
+var total_coins := 0
+var total_cleared_empty_stones := 0
 
 
 func add_step(step: RefCounted) -> void:
 	steps.append(step)
 	total_removed += step.removed_cells.size()
+	total_physical_damage += step.effects.physical_damage
+	total_magic_damage += step.effects.magic_damage
+	total_healing += step.effects.healing
+	total_coins += step.effects.coins
+	total_cleared_empty_stones += step.effects.cleared_empty_stones.size()

@@ -53,6 +53,20 @@ func _init() -> void:
 	failed = _check(turn_result.steps.size() >= 1, "Committed exchange resolves its match") or failed
 	failed = _check(turns.move_count == 1, "All cascades still count as one move") or failed
 
+	var blocker_board = BoardModelScript.new(Vector2i(6, 3), PackedInt32Array([
+		1, 2, 1, 2, 1, 2,
+		4, 0, 0, 0, 0, 4,
+		2, 1, 2, 1, 2, 1,
+	]))
+	var blocker_result = BoardResolverScript.new(
+		rules,
+		3,
+		func(_allow_empty: bool) -> int: return TileTypeScript.Value.EMPTY_STONE,
+	).resolve(blocker_board)
+	failed = _check(blocker_result.steps.size() == 1, "Enhanced match resolves in one stable step") or failed
+	failed = _check(blocker_result.total_cleared_empty_stones == 2, "Resolver clears blockers selected by line 4") or failed
+	failed = _check(blocker_result.total_removed == 6, "Matched tiles and adjacent blockers are removed together") or failed
+
 	quit(1 if failed else 0)
 
 
