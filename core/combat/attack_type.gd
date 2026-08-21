@@ -11,8 +11,8 @@ enum Kind {
 static func display_name(type: Kind) -> String:
 	match type:
 		Kind.PHYSICAL:
-			return "меч"
+			return TranslationServer.translate("меч")
 		Kind.MAGIC:
-			return "магия"
+			return TranslationServer.translate("магия")
 		_:
-			return "нет"
+			return TranslationServer.translate("нет")

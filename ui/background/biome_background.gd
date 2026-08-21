@@ -52,7 +52,7 @@ func set_biome(new_biome_id: StringName) -> void:
 
 
 func biome_name() -> String:
-	return BIOME_NAMES[biome_id]
+	return tr(BIOME_NAMES[biome_id])
 
 
 func panel_color(alpha := 0.9) -> Color:

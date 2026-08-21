@@ -20,6 +20,7 @@ const EnemyFactoryScript = preload("res://core/enemies/enemy_factory.gd")
 const EnemyControllerScript = preload("res://core/enemies/enemy_controller.gd")
 const EnemyCatalogScript = preload("res://core/enemies/enemy_catalog.gd")
 const EndlessCycleScript = preload("res://core/run/endless_cycle.gd")
+const LocalizationServiceScript = preload("res://core/localization/localization_service.gd")
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
@@ -145,27 +146,27 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 		var combat_result = _combat_resolver.resolve(resolution, _battle, _perform_enemy_action)
 		var was_reshuffled: bool = _board_shuffler.reshuffle_if_stuck(_board, rules.minimum_match_size)
 		board_view.refresh()
-		turn_result_label.text = "Ход %d · каскадов: %d%s" % [
+		turn_result_label.text = tr("Ход %d · каскадов: %d%s") % [
 			_turn_controller.move_count,
 			resolution.steps.size(),
-			" · ⚔%d ✦%d ♥%d ◉%d%s" % [
+			tr(" · ⚔%d ✦%d ♥%d ◉%d%s") % [
 				combat_result.physical_damage_applied,
 				combat_result.magic_damage_applied,
 				combat_result.healing_applied,
 				combat_result.coins_granted,
-				" · поле перемешано" if was_reshuffled else "",
+				tr(" · поле перемешано") if was_reshuffled else "",
 			],
 		]
 		await _play_combat_feedback(combat_result, resolution.steps.size())
 		_update_combat_status()
 		if combat_result.victory:
-			turn_result_label.text += " · ПОБЕДА"
+			turn_result_label.text += tr(" · ПОБЕДА")
 			_grant_victory_experience()
 		elif combat_result.defeat:
-			turn_result_label.text += " · ПОРАЖЕНИЕ"
+			turn_result_label.text += tr(" · ПОРАЖЕНИЕ")
 			_notify_defeat()
 	else:
-		turn_result_label.text = "Недопустимый ход"
+		turn_result_label.text = tr("Недопустимый ход")
 		await get_tree().create_timer(SWAP_PREVIEW_SECONDS).timeout
 	board_view.set_input_enabled(not _battle.is_over)
 
@@ -208,7 +209,7 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 		await _float_feedback(hero_feedback_label, "+%d HP" % result.healing_applied, Color("#66e68c"))
 	if result.coins_granted > 0:
 		feedback_events.append("coins")
-		await _float_feedback(coin_feedback_label, "+%d монет" % result.coins_granted, Color("#ffd45c"))
+		await _float_feedback(coin_feedback_label, tr("+%d монет") % result.coins_granted, Color("#ffd45c"))
 	if result.weakness_revealed:
 		feedback_events.append("weakness")
 		await _show_weakness_feedback(result.weakness_hit)
@@ -217,7 +218,7 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 		await _pulse_intent()
 		if result.enemy_intent_delayed:
 			feedback_events.append("relic_delay")
-			await _float_feedback(enemy_feedback_label, "ЗЕРКАЛЬНЫЙ ОСКОЛОК · ЗАДЕРЖАНО", Color("#b9d7ff"))
+			await _float_feedback(enemy_feedback_label, tr("ЗЕРКАЛЬНЫЙ ОСКОЛОК · ЗАДЕРЖАНО"), Color("#b9d7ff"))
 		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
 			feedback_events.append("enemy_attack")
 			await _float_feedback(hero_feedback_label, "−%d HP" % result.enemy_intent.value, Color("#ff6b5f"))
@@ -256,7 +257,7 @@ func _float_feedback(label: Label, text: String, color: Color) -> void:
 
 
 func _show_weakness_feedback(hit_weakness: bool) -> void:
-	weakness_feedback_label.text = "СЛАБОСТЬ ×1.50" if hit_weakness else "СЛАБОСТЬ РАСКРЫТА"
+	weakness_feedback_label.text = tr("СЛАБОСТЬ ×1.50") if hit_weakness else tr("СЛАБОСТЬ РАСКРЫТА")
 	weakness_feedback_label.modulate = Color.WHITE
 	weakness_feedback_label.visible = true
 	weakness_flash.visible = true
@@ -282,9 +283,9 @@ func _pulse_intent() -> void:
 func _show_special_feedback(intent: RefCounted) -> void:
 	if intent.show_value:
 		var value_text := "−%d HP" % intent.value if "Огненный удар" in intent.title else "+%d" % intent.value
-		special_feedback_label.text = "%s · %s" % [intent.title.to_upper(), value_text]
+		special_feedback_label.text = "%s · %s" % [tr(intent.title).to_upper(), value_text]
 	else:
-		special_feedback_label.text = intent.title.to_upper()
+		special_feedback_label.text = tr(intent.title).to_upper()
 	special_feedback_label.modulate = Color("#d8d1c4")
 	special_feedback_label.visible = true
 	board_flash.visible = true
@@ -328,21 +329,21 @@ func _perform_enemy_action(battle: RefCounted) -> void:
 
 
 func _update_combat_status() -> void:
-	battle_number_label.text = "Бой %d · %s" % [battle_number, biome_background.biome_name()]
+	battle_number_label.text = tr("Бой %s · %s") % [LocalizationServiceScript.format_integer(battle_number), biome_background.biome_name()]
 	cycle_modifier_label.text = EndlessCycleScript.modifier_text(battle_number)
 	cycle_modifier_label.visible = not cycle_modifier_label.text.is_empty()
-	hero_health_label.text = "HP %d / %d" % [_battle.hero.health, _battle.hero.max_health]
-	coins_label.text = "Монеты: %d" % _battle.hero.coins
-	experience_label.text = "Уровень %d · Опыт %d / %d" % [
-		_battle.hero.level,
-		_battle.hero.experience,
-		_battle.hero.experience_for_next_level(),
+	hero_health_label.text = "HP %s / %s" % [LocalizationServiceScript.format_integer(_battle.hero.health), LocalizationServiceScript.format_integer(_battle.hero.max_health)]
+	coins_label.text = tr("Монеты: %s") % LocalizationServiceScript.format_integer(_battle.hero.coins)
+	experience_label.text = tr("Уровень %s · Опыт %s / %s") % [
+		LocalizationServiceScript.format_integer(_battle.hero.level),
+		LocalizationServiceScript.format_integer(_battle.hero.experience),
+		LocalizationServiceScript.format_integer(_battle.hero.experience_for_next_level()),
 	]
-	enemy_health_label.text = "HP %d / %d" % [_battle.enemy.health, _battle.enemy.max_health]
-	enemy_title_label.text = "%s · %s" % [_battle.enemy.definition.display_name, _battle.enemy.definition.archetype]
-	enemy_intent_label.text = "Намерение: %s" % _battle.enemy.current_intent.display_text()
-	weakness_label.text = "Слабость: %s" % _battle.enemy.weakness_display()
-	resistance_label.text = "Сопротивление: %s" % AttackTypeScript.display_name(_battle.enemy.resistance_type)
+	enemy_health_label.text = "HP %s / %s" % [LocalizationServiceScript.format_integer(_battle.enemy.health), LocalizationServiceScript.format_integer(_battle.enemy.max_health)]
+	enemy_title_label.text = "%s · %s" % [tr(_battle.enemy.definition.display_name), tr(_battle.enemy.definition.archetype)]
+	enemy_intent_label.text = tr("Намерение: %s") % _battle.enemy.current_intent.display_text()
+	weakness_label.text = tr("Слабость: %s") % _battle.enemy.weakness_display()
+	resistance_label.text = tr("Сопротивление: %s") % AttackTypeScript.display_name(_battle.enemy.resistance_type)
 
 
 func _apply_biome_palette() -> void:
@@ -365,7 +366,7 @@ func _grant_victory_experience() -> void:
 	_battle.hero.add_experience(_battle.enemy.experience_reward)
 	_battle.hero.add_coins(_battle.enemy.base_coin_reward)
 	_battle.hero.apply_victory_relics()
-	battle_reward_label.text = "+%d опыта · +%d монет" % [
+	battle_reward_label.text = tr("+%d опыта · +%d монет") % [
 		_battle.enemy.experience_reward,
 		_battle.enemy.base_coin_reward,
 	]
@@ -382,7 +383,7 @@ func _show_level_up_choices() -> void:
 	_upgrade_choices = _upgrade_catalog.draw_three()
 	for index in upgrade_buttons.size():
 		var upgrade = _upgrade_choices[index]
-		upgrade_buttons[index].text = "%s\n[%s]\n%s" % [upgrade.title, upgrade.rarity_name(), upgrade.description]
+		upgrade_buttons[index].text = "%s\n[%s]\n%s" % [tr(upgrade.title), upgrade.rarity_name(), tr(upgrade.description)]
 	level_up_overlay.visible = true
 
 
@@ -420,7 +421,14 @@ func _toggle_pause() -> void:
 	var paused := not get_tree().paused
 	get_tree().paused = paused
 	pause_overlay.visible = paused
-	pause_button.text = "Продолжить" if paused else "Пауза"
+	pause_button.text = tr("Продолжить") if paused else tr("Пауза")
+
+
+func refresh_localized_text() -> void:
+	_update_combat_status()
+	pause_button.text = tr("Продолжить") if get_tree().paused else tr("Пауза")
+	if _turn_controller.move_count == 0:
+		turn_result_label.text = tr("Сделайте комбинацию из трёх камней")
 
 
 func _apply_responsive_style() -> void:

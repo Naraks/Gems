@@ -31,7 +31,7 @@ static func biome_id(battle_number: int) -> StringName:
 
 
 static func biome_name(battle_number: int) -> String:
-	return BIOME_NAMES[biome_id(battle_number)]
+	return TranslationServer.translate(BIOME_NAMES[biome_id(battle_number)])
 
 
 static func battle_in_biome(battle_number: int) -> int:
@@ -47,7 +47,7 @@ static func modifier_text(battle_number: int) -> String:
 	var bonus := blocker_limit_bonus(battle_number)
 	if bonus == 0:
 		return ""
-	return "Цикл %d · лимит пустых камней +%d" % [cycle_number(battle_number), bonus]
+	return TranslationServer.translate("Цикл %d · лимит пустых камней +%d") % [cycle_number(battle_number), bonus]
 
 
 static func palette_hue_shift(battle_number: int) -> float:

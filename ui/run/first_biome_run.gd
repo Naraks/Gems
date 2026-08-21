@@ -5,8 +5,10 @@ const HeroStateScript = preload("res://core/combat/hero_state.gd")
 const RunStateScript = preload("res://core/run/first_biome_run_state.gd")
 const BATTLE_SCENE := preload("res://ui/main/main.tscn")
 const SHOP_SCENE := preload("res://ui/shop/shop_screen.tscn")
+const LocalizationServiceScript = preload("res://core/localization/localization_service.gd")
 
 @onready var node_title_label: Label = %NodeTitleLabel
+@onready var language_selector: OptionButton = %LanguageSelector
 @onready var content: Control = %RunContent
 @onready var completion_panel: Control = %BiomeComplete
 @onready var completion_summary: Label = %CompletionSummary
@@ -27,9 +29,16 @@ var run_state: RefCounted
 var current_screen: Node
 var is_travelling := false
 var _journey_tween: Tween
+@export var localization_settings_path := LocalizationServiceScript.SETTINGS_PATH
 
 
 func _ready() -> void:
+	var locale := LocalizationServiceScript.initialize(localization_settings_path)
+	language_selector.clear()
+	language_selector.add_item("Русский")
+	language_selector.add_item("English")
+	language_selector.select(1 if locale == "en" else 0)
+	language_selector.item_selected.connect(_on_language_selected)
 	return_to_menu_button.pressed.connect(_on_return_to_menu)
 	new_run_button.pressed.connect(_start_new_run)
 	if run_state == null:
@@ -53,13 +62,13 @@ func _show_current_node() -> void:
 	node_title_label.text = run_state.node_title()
 	if run_state.status == RunStateScript.Status.DEFEAT_SUMMARY:
 		encounter_avatar.visible = false
-		journey_status.text = "Путешествие завершено"
+		journey_status.text = tr("Путешествие завершено")
 		defeat_summary.text = run_state.summary_text()
 		defeat_panel.visible = true
 		return
 	if run_state.status == RunStateScript.Status.MENU:
 		encounter_avatar.visible = false
-		journey_status.text = "Камни и Клинки"
+		journey_status.text = tr("Камни и Клинки")
 		menu_panel.visible = true
 		return
 	match run_state.current_kind:
@@ -83,9 +92,9 @@ func _show_current_node() -> void:
 			_show_encounter("ТОРГОВЕЦ", true)
 		RunStateScript.NodeKind.COMPLETE:
 			encounter_avatar.visible = false
-			journey_status.text = "Путь через руины завершён"
+			journey_status.text = tr("Путь через руины завершён")
 			completion_panel.visible = true
-			completion_summary.text = "10 боёв завершено · Магазинов: %d\nУровень: %d · Монеты: %d" % [
+			completion_summary.text = tr("10 боёв завершено · Магазинов: %d\nУровень: %d · Монеты: %d") % [
 				run_state.shops_visited,
 				run_state.hero.level,
 				run_state.hero.coins,
@@ -121,16 +130,17 @@ func _show_encounter(kind_text: String, is_merchant: bool, definition: Resource 
 	encounter_avatar.visible = true
 	encounter_avatar.color = Color("8b692f") if is_merchant else definition.visual_color
 	var symbol: String = "☰" if is_merchant else definition.visual_symbol
-	var title: String = kind_text if is_merchant else "%s · %s" % [kind_text, definition.display_name.to_upper()]
+	var localized_kind := tr(kind_text)
+	var title: String = localized_kind if is_merchant else "%s · %s" % [localized_kind, tr(definition.display_name).to_upper()]
 	encounter_label.text = "%s\n%s" % [symbol, title]
-	_play_travel_animation("Встреча: " + kind_text.to_lower())
+	_play_travel_animation(tr("Встреча: %s") % localized_kind.to_lower())
 
 
 func _play_travel_animation(arrival_text: String) -> void:
 	if _journey_tween != null and _journey_tween.is_valid():
 		_journey_tween.kill()
 	is_travelling = true
-	journey_status.text = "Герой идёт дальше..."
+	journey_status.text = tr("Герой идёт дальше...")
 	distant_ruins.position.x = 0.0
 	road_marks.position.x = 0.0
 	encounter_avatar.position.x = journey_stage.size.x + 20.0
@@ -144,3 +154,11 @@ func _play_travel_animation(arrival_text: String) -> void:
 		is_travelling = false
 		journey_status.text = arrival_text
 	)
+
+
+func _on_language_selected(index: int) -> void:
+	var locale := "en" if index == 1 else "ru"
+	LocalizationServiceScript.select_locale(locale, localization_settings_path)
+	node_title_label.text = run_state.node_title()
+	if current_screen != null and current_screen.has_method("refresh_localized_text"):
+		current_screen.refresh_localized_text()

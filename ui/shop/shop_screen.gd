@@ -4,6 +4,7 @@ extends Control
 signal closed
 
 const ShopStateScript = preload("res://core/shop/shop_state.gd")
+const LocalizationServiceScript = preload("res://core/localization/localization_service.gd")
 
 @onready var coins_label: Label = %ShopCoinsLabel
 @onready var item_buttons: Array[Button] = [%ShopItem1, %ShopItem2, %ShopItem3, %ShopItem4]
@@ -46,18 +47,22 @@ func _refresh() -> void:
 func _refresh_ui() -> void:
 	if shop == null or not is_node_ready():
 		return
-	coins_label.text = "Монеты: %d" % shop.hero.coins
+	coins_label.text = tr("Монеты: %s") % LocalizationServiceScript.format_integer(shop.hero.coins)
 	for index in item_buttons.size():
 		var item = shop.items[index]
-		item_buttons[index].text = "%s\n%s\n%d монет%s" % [
-			item.title,
-			item.description,
-			item.price,
-			"\nКУПЛЕНО" if item.sold else "",
+		item_buttons[index].text = tr("%s\n%s\n%s монет%s") % [
+			tr(item.title),
+			tr(item.description),
+			LocalizationServiceScript.format_integer(item.price),
+			tr("\nКУПЛЕНО") if item.sold else "",
 		]
 		item_buttons[index].disabled = not shop.can_purchase(index)
-	refresh_button.text = "Обновить · %d" % shop.refresh_cost
+	refresh_button.text = tr("Обновить · %s") % LocalizationServiceScript.format_integer(shop.refresh_cost)
 	refresh_button.disabled = not shop.can_refresh()
+
+
+func refresh_localized_text() -> void:
+	_refresh_ui()
 
 
 func _apply_responsive_style() -> void:

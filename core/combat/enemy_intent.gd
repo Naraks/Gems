@@ -1,6 +1,8 @@
 class_name EnemyIntent
 extends RefCounted
 
+const LocalizationServiceScript = preload("res://core/localization/localization_service.gd")
+
 enum Kind {
 	ATTACK,
 	HEAL,
@@ -32,4 +34,5 @@ func display_text() -> String:
 			Kind.HEAL: label = "Лечение"
 			Kind.SPECIAL: label = "Особое действие"
 			Kind.PREPARE: label = "Подготовка"
-	return "%s: %d" % [label, value] if show_value else label
+	label = tr(label)
+	return tr("%s: %s") % [label, LocalizationServiceScript.format_integer(value)] if show_value else label

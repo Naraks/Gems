@@ -28,6 +28,11 @@ window/stretch/aspect="expand"
 
 3d/physics_engine="Jolt Physics"
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://localization/game.en.translation", "res://localization/game.ru.translation")
+locale/fallback="ru"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

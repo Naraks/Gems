@@ -66,7 +66,7 @@ func open_menu() -> void:
 
 func summary_text() -> String:
 	var total_seconds := maxi(0, roundi(duration_seconds))
-	return "Глубина: бой %d · Побед: %d\nДлительность: %02d:%02d · Магазинов: %d\nУровень: %d · Монеты: %d · Реликвии: %d" % [
+	return tr("Глубина: бой %d · Побед: %d\nДлительность: %02d:%02d · Магазинов: %d\nУровень: %d · Монеты: %d · Реликвии: %d") % [
 		battle_number,
 		completed_battles,
 		total_seconds / 60,
@@ -81,16 +81,16 @@ func summary_text() -> String:
 func node_title() -> String:
 	var biome_name := EndlessCycleScript.biome_name(battle_number)
 	var battle_in_biome := EndlessCycleScript.battle_in_biome(battle_number)
-	var cycle_suffix := " · Цикл %d" % EndlessCycleScript.cycle_number(battle_number) if battle_number > 30 else ""
+	var cycle_suffix := tr(" · Цикл %d") % EndlessCycleScript.cycle_number(battle_number) if battle_number > 30 else ""
 	match current_kind:
 		NodeKind.SHOP:
-			return "%s · Магазин после боя %d%s" % [biome_name, battle_number, cycle_suffix]
+			return tr("%s · Магазин после боя %d%s") % [biome_name, battle_number, cycle_suffix]
 		NodeKind.BOSS:
-			return "%s · Босс %d/10%s" % [biome_name, battle_in_biome, cycle_suffix]
+			return tr("%s · Босс %d/10%s") % [biome_name, battle_in_biome, cycle_suffix]
 		NodeKind.COMPLETE:
-			return "Забег завершён"
+			return tr("Забег завершён")
 		_:
-			return "%s · Бой %d/10%s" % [biome_name, battle_in_biome, cycle_suffix]
+			return tr("%s · Бой %d/10%s") % [biome_name, battle_in_biome, cycle_suffix]
 
 
 func _advance_to_next_battle() -> void:

@@ -31,4 +31,4 @@ func _init(upgrade_id: Id, upgrade_title: String, upgrade_description: String, u
 
 
 func rarity_name() -> String:
-	return "Редкая" if rarity == Rarity.RARE else "Обычная"
+	return tr("Редкая") if rarity == Rarity.RARE else tr("Обычная")
