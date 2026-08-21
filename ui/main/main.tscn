@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://ui/main/main.gd" id="1_main"]
 [ext_resource type="Resource" path="res://data/game_rules.tres" id="2_rules"]
 [ext_resource type="Script" path="res://ui/board/board_view.gd" id="3_board_view"]
+[ext_resource type="Script" path="res://ui/background/biome_background.gd" id="4_biome_background"]
+[ext_resource type="Script" path="res://ui/combat/combatant_portrait.gd" id="5_combatant_portrait"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -13,6 +15,18 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 rules = ExtResource("2_rules")
+
+[node name="BiomeBackground" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture_filter = 1
+script = ExtResource("4_biome_background")
 
 [node name="Layout" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
@@ -100,8 +114,18 @@ theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 8
 
 [node name="Fighters" type="HBoxContainer" parent="Layout/CombatArea/CombatMargin"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 24
+
+[node name="HeroPortrait" type="Control" parent="Layout/CombatArea/CombatMargin/Fighters"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 96)
+layout_mode = 2
+mouse_filter = 2
+texture_filter = 1
+script = ExtResource("5_combatant_portrait")
+symbol = "⚔"
 
 [node name="HeroPanel" type="VBoxContainer" parent="Layout/CombatArea/CombatMargin/Fighters"]
 layout_mode = 2
@@ -133,6 +157,17 @@ horizontal_alignment = 1
 
 [node name="Divider" type="VSeparator" parent="Layout/CombatArea/CombatMargin/Fighters"]
 layout_mode = 2
+
+[node name="EnemyPortrait" type="Control" parent="Layout/CombatArea/CombatMargin/Fighters"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 96)
+layout_mode = 2
+mouse_filter = 2
+texture_filter = 1
+script = ExtResource("5_combatant_portrait")
+role = 1
+primary_color = Color(0.52, 0.17, 0.14, 1)
+symbol = "?"
 
 [node name="EnemyPanel" type="VBoxContainer" parent="Layout/CombatArea/CombatMargin/Fighters"]
 layout_mode = 2

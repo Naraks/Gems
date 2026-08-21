@@ -30,14 +30,18 @@ const AUTO_CONTINUE_SECONDS := 0.65
 var run_hero: RefCounted
 
 @onready var board_view: Control = %BoardView
+@onready var biome_background: Control = %BiomeBackground
+@onready var fighters: HBoxContainer = %Fighters
 @onready var turn_result_label: Label = %TurnResultLabel
 @onready var battle_number_label: Label = %BattleNumberLabel
 @onready var pause_button: Button = %PauseButton
 @onready var pause_overlay: ColorRect = %PauseOverlay
 @onready var hero_health_label: Label = %HeroHealthLabel
+@onready var hero_portrait: Control = %HeroPortrait
 @onready var coins_label: Label = %CoinsLabel
 @onready var experience_label: Label = %ExperienceLabel
 @onready var enemy_health_label: Label = %EnemyHealthLabel
+@onready var enemy_portrait: Control = %EnemyPortrait
 @onready var enemy_title_label: Label = %EnemyTitleLabel
 @onready var enemy_intent_label: Label = %EnemyIntentLabel
 @onready var weakness_label: Label = %WeaknessLabel
@@ -77,6 +81,8 @@ var feedback_events: PackedStringArray = []
 func _ready() -> void:
 	assert(rules != null, "Main scene requires a GameRules resource")
 	assert(rules.is_valid(), "GameRules resource is invalid")
+	biome_background.setup_for_battle(battle_number)
+	_apply_biome_palette()
 	_board = BoardGeneratorScript.new(rules).generate_starting_board()
 	assert(_board != null, "Starting board generation failed")
 	_board_resolver = BoardResolverScript.new(rules)
@@ -99,6 +105,8 @@ func _ready() -> void:
 		else EnemyCatalogScript.new().for_battle(battle_number)
 	)
 	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
+	hero_portrait.setup(0, Color("4e78d0"), "⚔")
+	enemy_portrait.setup(1, enemy_definition.visual_color, enemy_definition.visual_symbol)
 	_enemy_controller = EnemyControllerScript.new(enemy, _board, rules.maximum_empty_stones)
 	_battle = BattleStateScript.new(
 		hero,
@@ -314,7 +322,7 @@ func _perform_enemy_action(battle: RefCounted) -> void:
 
 
 func _update_combat_status() -> void:
-	battle_number_label.text = "Бой %d" % battle_number
+	battle_number_label.text = "Бой %d · %s" % [battle_number, biome_background.biome_name()]
 	hero_health_label.text = "HP %d / %d" % [_battle.hero.health, _battle.hero.max_health]
 	coins_label.text = "Монеты: %d" % _battle.hero.coins
 	experience_label.text = "Уровень %d · Опыт %d / %d" % [
@@ -327,6 +335,19 @@ func _update_combat_status() -> void:
 	enemy_intent_label.text = "Намерение: %s" % _battle.enemy.current_intent.display_text()
 	weakness_label.text = "Слабость: %s" % _battle.enemy.weakness_display()
 	resistance_label.text = "Сопротивление: %s" % AttackTypeScript.display_name(_battle.enemy.resistance_type)
+
+
+func _apply_biome_palette() -> void:
+	var panel_color: Color = biome_background.panel_color()
+	var accent_color: Color = biome_background.accent_color()
+	for panel in [%BoardArea, %TurnResultArea, %CombatArea]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = panel_color
+		style.border_color = Color(accent_color, 0.42)
+		style.set_border_width_all(1)
+		panel.add_theme_stylebox_override("panel", style)
+	battle_number_label.add_theme_color_override("font_color", accent_color)
+	turn_result_label.add_theme_color_override("font_color", Color(accent_color, 0.92))
 
 
 func _grant_victory_experience() -> void:
@@ -398,6 +419,9 @@ func _apply_responsive_style() -> void:
 	var compact := size.y < 420.0
 	var body_font_size := 14 if compact else 18
 	var title_font_size := 15 if compact else 20
+	fighters.add_theme_constant_override("separation", 8 if compact else 24)
+	for portrait in [hero_portrait, enemy_portrait]:
+		portrait.custom_minimum_size = Vector2(44, 66) if compact else Vector2(64, 96)
 	for label in [hero_health_label, coins_label, experience_label, enemy_health_label, enemy_intent_label, weakness_label, resistance_label, turn_result_label]:
 		if label != null:
 			label.add_theme_font_size_override("font_size", body_font_size)
