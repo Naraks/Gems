@@ -66,6 +66,16 @@ size_flags_horizontal = 3
 text = "Бой 1"
 vertical_alignment = 1
 
+[node name="CycleModifierLabel" type="Label" parent="Layout/BoardArea/BoardLayout/TopBar/TopBarContent"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Цикл 2 · лимит пустых камней +1"
+horizontal_alignment = 2
+vertical_alignment = 1
+text_overrun_behavior = 3
+
 [node name="PauseButton" type="Button" parent="Layout/BoardArea/BoardLayout/TopBar/TopBarContent"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 44)

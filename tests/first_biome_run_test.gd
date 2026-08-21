@@ -21,13 +21,14 @@ func _run() -> void:
 	var failed := false
 	var hero = HeroStateScript.new(100)
 	var state = RunStateScript.new(hero)
+	var first_block_shops: Array[int] = state.shop_after_battles.duplicate()
 	var factory = EnemyFactoryScript.new()
 	var upgrades = UpgradeCatalogScript.new(1919)
 	var visited_battles: Array[int] = []
 	var shop_after: Array[int] = []
 	var boss_seen := false
 
-	while state.current_kind != RunStateScript.NodeKind.COMPLETE:
+	while state.completed_battles < 10:
 		if state.current_kind == RunStateScript.NodeKind.SHOP:
 			shop_after.append(state.battle_number)
 			state.leave_shop()
@@ -44,8 +45,9 @@ func _run() -> void:
 		state.complete_battle()
 
 	failed = _check(visited_battles == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "Run exposes battles 1 through 10 in order") or failed
-	failed = _check(shop_after == state.shop_after_battles and shop_after.size() <= 2, "Run places its generated shops as readable nodes") or failed
+	failed = _check(shop_after == first_block_shops and shop_after.size() <= 2, "Run places its generated shops as readable nodes") or failed
 	failed = _check(boss_seen and state.completed_battles == 10, "Battle 10 is the Stone Guardian boss") or failed
+	failed = _check(state.status == RunStateScript.Status.ACTIVE and state.battle_number == 11 and state.current_kind == RunStateScript.NodeKind.BATTLE, "Run continues into the Ashen Mines after the first boss") or failed
 	failed = _check(hero.coins > 0 and hero.experience >= 0, "Hero rewards persist across the full biome") or failed
 
 	var ui_hero = HeroStateScript.new(100)

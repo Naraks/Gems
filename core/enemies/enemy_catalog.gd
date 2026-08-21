@@ -48,4 +48,5 @@ func for_battle(battle_number: int) -> Resource:
 
 func boss_for_battle(battle_number: int) -> Resource:
 	assert(battle_number >= 1 and battle_number % 10 == 0, "Boss battle must be a positive multiple of ten")
-	return load(BOSS_PATHS.get(battle_number, BOSS_PATHS[10]))
+	var cycle_battle := (battle_number - 1) % 30 + 1
+	return load(BOSS_PATHS[cycle_battle])

@@ -19,6 +19,7 @@ const RelicDefinitionScript = preload("res://core/progression/relic_definition.g
 const EnemyFactoryScript = preload("res://core/enemies/enemy_factory.gd")
 const EnemyControllerScript = preload("res://core/enemies/enemy_controller.gd")
 const EnemyCatalogScript = preload("res://core/enemies/enemy_catalog.gd")
+const EndlessCycleScript = preload("res://core/run/endless_cycle.gd")
 const SWAP_PREVIEW_SECONDS := 0.12
 const FEEDBACK_SECONDS := 0.28
 const SKIP_SPEED := 8.0
@@ -26,7 +27,7 @@ const AUTO_CONTINUE_SECONDS := 0.65
 
 @export var rules: GameRules
 @export var tutorial_completed := true
-@export_range(1, 30, 1) var battle_number := 1
+@export_range(1, 1000000, 1) var battle_number := 1
 var run_hero: RefCounted
 
 @onready var board_view: Control = %BoardView
@@ -35,6 +36,7 @@ var run_hero: RefCounted
 @onready var turn_result_label: Label = %TurnResultLabel
 @onready var battle_number_label: Label = %BattleNumberLabel
 @onready var pause_button: Button = %PauseButton
+@onready var cycle_modifier_label: Label = %CycleModifierLabel
 @onready var pause_overlay: ColorRect = %PauseOverlay
 @onready var hero_health_label: Label = %HeroHealthLabel
 @onready var hero_portrait: Control = %HeroPortrait
@@ -107,7 +109,11 @@ func _ready() -> void:
 	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
 	hero_portrait.setup(0, Color("4e78d0"), "⚔")
 	enemy_portrait.setup(1, enemy_definition.visual_color, enemy_definition.visual_symbol)
-	_enemy_controller = EnemyControllerScript.new(enemy, _board, rules.maximum_empty_stones)
+	_enemy_controller = EnemyControllerScript.new(
+		enemy,
+		_board,
+		rules.maximum_empty_stones + EndlessCycleScript.blocker_limit_bonus(battle_number),
+	)
 	_battle = BattleStateScript.new(
 		hero,
 		enemy,
@@ -323,6 +329,8 @@ func _perform_enemy_action(battle: RefCounted) -> void:
 
 func _update_combat_status() -> void:
 	battle_number_label.text = "Бой %d · %s" % [battle_number, biome_background.biome_name()]
+	cycle_modifier_label.text = EndlessCycleScript.modifier_text(battle_number)
+	cycle_modifier_label.visible = not cycle_modifier_label.text.is_empty()
 	hero_health_label.text = "HP %d / %d" % [_battle.hero.health, _battle.hero.max_health]
 	coins_label.text = "Монеты: %d" % _battle.hero.coins
 	experience_label.text = "Уровень %d · Опыт %d / %d" % [

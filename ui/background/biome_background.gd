@@ -1,6 +1,8 @@
 class_name BiomeBackground
 extends Control
 
+const EndlessCycleScript = preload("res://core/run/endless_cycle.gd")
+
 const BIOME_IDS := [&"ruins", &"mines", &"tower"]
 const BIOME_NAMES := {
 	&"ruins": "Заросшие руины",
@@ -27,6 +29,7 @@ const PARALLAX_RANGE := Vector2(5.0, 3.0)
 var biome_id: StringName = &"ruins"
 var parallax_offset := Vector2.ZERO
 var _elapsed := 0.0
+var _palette_hue_shift := 0.0
 
 
 func _ready() -> void:
@@ -38,8 +41,8 @@ func _ready() -> void:
 
 func setup_for_battle(battle_number: int) -> void:
 	assert(battle_number >= 1, "Battle number starts at one")
-	var cycle_battle := (battle_number - 1) % 30
-	set_biome(BIOME_IDS[floori(float(cycle_battle) / 10.0)])
+	_palette_hue_shift = EndlessCycleScript.palette_hue_shift(battle_number)
+	set_biome(EndlessCycleScript.biome_id(battle_number))
 
 
 func set_biome(new_biome_id: StringName) -> void:
@@ -53,11 +56,11 @@ func biome_name() -> String:
 
 
 func panel_color(alpha := 0.9) -> Color:
-	return Color(PANEL_COLORS[biome_id], alpha)
+	return _shifted_color(PANEL_COLORS[biome_id], alpha)
 
 
 func accent_color() -> Color:
-	return ACCENT_COLORS[biome_id]
+	return _shifted_color(ACCENT_COLORS[biome_id])
 
 
 func background_texture() -> Texture2D:
@@ -84,5 +87,12 @@ func _draw() -> void:
 	var scale_factor := maxf(size.x / texture_size.x, size.y / texture_size.y)
 	var drawn_size := texture_size * scale_factor + PARALLAX_RANGE * 4.0
 	var destination := Rect2((size - drawn_size) * 0.5 + parallax_offset, drawn_size)
-	draw_texture_rect(texture, destination, false, Color(0.72, 0.72, 0.72, 1.0))
-	draw_rect(Rect2(Vector2.ZERO, size), Color(PANEL_COLORS[biome_id], 0.28), true)
+	draw_texture_rect(texture, destination, false, _shifted_color(Color(0.72, 0.72, 0.72, 1.0)))
+	draw_rect(Rect2(Vector2.ZERO, size), panel_color(0.28), true)
+
+
+func _shifted_color(color: Color, alpha := -1.0) -> Color:
+	var shifted := Color.from_hsv(fmod(color.h + _palette_hue_shift, 1.0), color.s, color.v, color.a)
+	if alpha >= 0.0:
+		shifted.a = alpha
+	return shifted
