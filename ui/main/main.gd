@@ -108,8 +108,14 @@ func _ready() -> void:
 		else EnemyCatalogScript.new().for_battle(battle_number)
 	)
 	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
-	hero_portrait.setup(0, Color("4e78d0"), "⚔")
-	enemy_portrait.setup(1, enemy_definition.visual_color, enemy_definition.visual_symbol)
+	hero_portrait.setup(CombatantPortrait.Role.HERO, Color("4e78d0"), "⚔")
+	enemy_portrait.setup(
+		CombatantPortrait.Role.ENEMY,
+		enemy_definition.visual_color,
+		enemy_definition.visual_symbol,
+		enemy_definition.id,
+		enemy_definition.is_boss,
+	)
 	_enemy_controller = EnemyControllerScript.new(
 		enemy,
 		_board,
@@ -202,9 +208,15 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 		await _flash_board(cascade_count)
 	var total_damage: int = result.physical_damage_applied + result.magic_damage_applied
 	if total_damage > 0:
+		if result.physical_damage_applied > 0:
+			await hero_portrait.play_state(CombatantPortrait.State.SWORD)
+		if result.magic_damage_applied > 0:
+			await hero_portrait.play_state(CombatantPortrait.State.MAGIC)
+		await enemy_portrait.play_state(CombatantPortrait.State.HURT)
 		feedback_events.append("enemy_damage")
 		await _float_feedback(enemy_feedback_label, "−%d HP" % total_damage, Color("#ff6b5f"))
 	if result.healing_applied > 0:
+		await hero_portrait.play_state(CombatantPortrait.State.HEAL)
 		feedback_events.append("hero_heal")
 		await _float_feedback(hero_feedback_label, "+%d HP" % result.healing_applied, Color("#66e68c"))
 	if result.coins_granted > 0:
@@ -220,11 +232,25 @@ func _play_combat_feedback(result: RefCounted, cascade_count: int) -> void:
 			feedback_events.append("relic_delay")
 			await _float_feedback(enemy_feedback_label, tr("ЗЕРКАЛЬНЫЙ ОСКОЛОК · ЗАДЕРЖАНО"), Color("#b9d7ff"))
 		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
+			await enemy_portrait.play_state(CombatantPortrait.State.ATTACK)
+			await hero_portrait.play_state(CombatantPortrait.State.HURT)
 			feedback_events.append("enemy_attack")
 			await _float_feedback(hero_feedback_label, "−%d HP" % result.enemy_intent.value, Color("#ff6b5f"))
-		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.SPECIAL:
+		elif result.enemy_intent != null and result.enemy_intent.kind in [EnemyIntentScript.Kind.SPECIAL, EnemyIntentScript.Kind.PREPARE]:
+			var state := (
+				CombatantPortrait.State.PREPARE
+				if result.enemy_intent.kind == EnemyIntentScript.Kind.PREPARE or "Подготовка" in result.enemy_intent.title
+				else CombatantPortrait.State.SPECIAL
+			)
+			await enemy_portrait.play_state(state, 0.28)
 			feedback_events.append("boss_special")
 			await _show_special_feedback(result.enemy_intent)
+		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.HEAL:
+			await enemy_portrait.play_state(CombatantPortrait.State.HEAL)
+	if result.victory:
+		await enemy_portrait.play_state(CombatantPortrait.State.DEFEAT, 0.32)
+	elif result.defeat:
+		await hero_portrait.play_state(CombatantPortrait.State.DEFEAT, 0.32)
 	_feedback_active = false
 	_feedback_tweens.clear()
 
