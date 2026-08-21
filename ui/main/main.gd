@@ -33,6 +33,10 @@ var run_hero: RefCounted
 
 @onready var board_view: Control = %BoardView
 @onready var biome_background: Control = %BiomeBackground
+@onready var layout: VBoxContainer = %Layout
+@onready var board_area: PanelContainer = %BoardArea
+@onready var turn_result_area: PanelContainer = %TurnResultArea
+@onready var combat_area: PanelContainer = %CombatArea
 @onready var fighters: HBoxContainer = %Fighters
 @onready var turn_result_label: Label = %TurnResultLabel
 @onready var battle_number_label: Label = %BattleNumberLabel
@@ -84,6 +88,7 @@ var feedback_events: PackedStringArray = []
 func _ready() -> void:
 	assert(rules != null, "Main scene requires a GameRules resource")
 	assert(rules.is_valid(), "GameRules resource is invalid")
+	_layout_battlefield()
 	biome_background.setup_for_battle(battle_number)
 	_apply_biome_palette()
 	_board = BoardGeneratorScript.new(rules).generate_starting_board()
@@ -134,6 +139,26 @@ func _ready() -> void:
 	weakness_sound.stream = _create_weakness_sound()
 	_apply_responsive_style()
 	_update_combat_status()
+	_play_enemy_arrival.call_deferred()
+
+
+func _layout_battlefield() -> void:
+	layout.move_child(combat_area, 0)
+	layout.move_child(board_area, 1)
+	layout.move_child(turn_result_area, 2)
+	fighters.move_child(enemy_portrait, fighters.get_child_count() - 1)
+
+
+func _play_enemy_arrival() -> void:
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	var destination_x := enemy_portrait.position.x
+	enemy_portrait.position.x += 72.0
+	enemy_portrait.modulate.a = 0.0
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(enemy_portrait, "position:x", destination_x, 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(enemy_portrait, "modulate:a", 1.0, 0.24)
 
 
 func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
@@ -431,9 +456,21 @@ func _continue_run_automatically() -> void:
 	if _auto_transition_started:
 		return
 	_auto_transition_started = true
-	await get_tree().create_timer(AUTO_CONTINUE_SECONDS).timeout
+	await _play_journey_transition()
 	if is_inside_tree():
 		battle_completed.emit()
+
+
+func _play_journey_transition() -> void:
+	board_view.set_input_enabled(false)
+	var hero_start_x := hero_portrait.position.x
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(board_area, "modulate:a", 0.22, AUTO_CONTINUE_SECONDS * 0.7)
+	tween.tween_property(turn_result_area, "modulate:a", 0.18, AUTO_CONTINUE_SECONDS * 0.7)
+	tween.tween_property(enemy_portrait, "position:x", enemy_portrait.position.x + 90.0, AUTO_CONTINUE_SECONDS * 0.45)
+	tween.tween_property(enemy_portrait, "modulate:a", 0.0, AUTO_CONTINUE_SECONDS * 0.35)
+	tween.tween_property(hero_portrait, "position:x", hero_start_x + 64.0, AUTO_CONTINUE_SECONDS).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await biome_background.play_travel(AUTO_CONTINUE_SECONDS)
 
 
 func _notify_defeat() -> void:
@@ -458,12 +495,14 @@ func refresh_localized_text() -> void:
 
 
 func _apply_responsive_style() -> void:
-	var compact := size.y < 420.0
+	var compact := size.y <= 540.0
 	var body_font_size := 14 if compact else 18
 	var title_font_size := 15 if compact else 20
 	fighters.add_theme_constant_override("separation", 8 if compact else 24)
 	for portrait in [hero_portrait, enemy_portrait]:
-		portrait.custom_minimum_size = Vector2(44, 66) if compact else Vector2(64, 96)
+		portrait.custom_minimum_size = Vector2(40, 54) if compact else Vector2(84, 118)
+	for secondary_label in [coins_label, experience_label, weakness_label, resistance_label]:
+		secondary_label.visible = not compact
 	for label in [hero_health_label, coins_label, experience_label, enemy_health_label, enemy_intent_label, weakness_label, resistance_label, turn_result_label]:
 		if label != null:
 			label.add_theme_font_size_override("font_size", body_font_size)

@@ -87,10 +87,14 @@ func _run() -> void:
 	await process_frame
 	var automatic_transitions := [0]
 	battle_screen.battle_completed.connect(func() -> void: automatic_transitions[0] += 1)
+	var battle_hero_x: float = battle_screen.hero_portrait.position.x
 	battle_screen._grant_victory_experience()
 	failed = _check(battle_screen.battle_transition_overlay.visible and "опыта" in battle_screen.battle_reward_label.text, "Victory briefly shows its rewards") or failed
 	failed = _check(battle_screen.get_node_or_null("%ContinueRunButton") == null, "Victory has no manual next-node button") or failed
-	await create_timer(0.75).timeout
+	await create_timer(0.2).timeout
+	failed = _check(battle_screen.biome_background.travel_progress > 0.0, "Battle background scrolls after victory") or failed
+	failed = _check(battle_screen.hero_portrait.position.x > battle_hero_x, "Hero advances toward the next encounter") or failed
+	await create_timer(0.55).timeout
 	failed = _check(automatic_transitions[0] == 1, "Victory automatically continues to the next node") or failed
 	battle_screen.queue_free()
 	await process_frame

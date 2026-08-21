@@ -42,7 +42,7 @@ theme_override_constants/separation = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 65.0
+size_flags_stretch_ratio = 71.0
 
 [node name="BoardLayout" type="VBoxContainer" parent="Layout/BoardArea"]
 layout_mode = 2
@@ -100,7 +100,7 @@ script = ExtResource("3_board_view")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 8.0
+size_flags_stretch_ratio = 7.0
 
 [node name="TurnResultLabel" type="Label" parent="Layout/TurnResultArea"]
 unique_name_in_owner = true
@@ -114,7 +114,7 @@ text_overrun_behavior = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 27.0
+size_flags_stretch_ratio = 22.0
 
 [node name="CombatMargin" type="MarginContainer" parent="Layout/CombatArea"]
 layout_mode = 2
@@ -349,19 +349,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.035, 0.075, 0.055, 0.94)
+color = Color(0.035, 0.075, 0.055, 0.28)
 
 [node name="TransitionLayout" type="VBoxContainer" parent="BattleTransitionOverlay"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 0.12
 anchor_right = 0.5
-anchor_bottom = 0.5
+anchor_bottom = 0.12
 offset_left = -230.0
-offset_top = -90.0
+offset_top = -10.0
 offset_right = 230.0
-offset_bottom = 90.0
+offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 18

@@ -28,6 +28,10 @@ const PARALLAX_RANGE := Vector2(5.0, 3.0)
 
 var biome_id: StringName = &"ruins"
 var parallax_offset := Vector2.ZERO
+var travel_progress := 0.0:
+	set(value):
+		travel_progress = value
+		queue_redraw()
 var _elapsed := 0.0
 var _palette_hue_shift := 0.0
 
@@ -67,6 +71,13 @@ func background_texture() -> Texture2D:
 	return BIOME_TEXTURES[biome_id]
 
 
+func play_travel(duration := 0.7) -> void:
+	travel_progress = 0.0
+	var tween := create_tween()
+	tween.tween_property(self, "travel_progress", 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await tween.finished
+
+
 func _process(delta: float) -> void:
 	_elapsed += delta
 	var viewport_size := get_viewport_rect().size
@@ -86,8 +97,13 @@ func _draw() -> void:
 	var texture_size := texture.get_size()
 	var scale_factor := maxf(size.x / texture_size.x, size.y / texture_size.y)
 	var drawn_size := texture_size * scale_factor + PARALLAX_RANGE * 4.0
-	var destination := Rect2((size - drawn_size) * 0.5 + parallax_offset, drawn_size)
-	draw_texture_rect(texture, destination, false, _shifted_color(Color(0.72, 0.72, 0.72, 1.0)))
+	var base_position := (size - drawn_size) * 0.5 + parallax_offset
+	var travel_offset := -travel_progress * minf(size.x * 0.42, drawn_size.x * 0.42)
+	var destination := Rect2(base_position + Vector2(travel_offset, 0.0), drawn_size)
+	var texture_tint := _shifted_color(Color(0.72, 0.72, 0.72, 1.0))
+	draw_texture_rect(texture, destination, false, texture_tint)
+	if destination.end.x < size.x:
+		draw_texture_rect(texture, Rect2(destination.position + Vector2(drawn_size.x, 0.0), drawn_size), false, texture_tint)
 	draw_rect(Rect2(Vector2.ZERO, size), panel_color(0.28), true)
 
 
