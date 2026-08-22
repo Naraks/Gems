@@ -34,7 +34,7 @@ func _run() -> void:
 	failed = _check(
 		boss.current_intent.kind == EnemyIntentScript.Kind.PREPARE
 		and boss.current_intent.value == prepared_damage
-		and "Огненный удар" in boss.current_intent.display_text(),
+		and boss.current_intent.title == definition.special_title,
 		"Preparation clearly telegraphs the exact double-damage strike",
 	) or failed
 	var health_before_prepare: int = hero.health
@@ -61,7 +61,7 @@ func _run() -> void:
 	main.battle_number = 20
 	root.add_child(main)
 	await process_frame
-	failed = _check("Огненный голем" in main.enemy_title_label.text, "Battle 20 HUD names the Fire Golem") or failed
+	failed = _check(tr(definition.display_name) in main.enemy_title_label.text, "Battle 20 HUD names the Fire Golem") or failed
 	main.queue_free()
 	await process_frame
 	quit(1 if failed else 0)

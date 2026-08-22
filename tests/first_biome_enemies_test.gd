@@ -45,12 +45,12 @@ func _init() -> void:
 	var healer = factory.create(definitions[1], 2)
 	var healer_controller = EnemyControllerScript.new(healer, board, 12, 2)
 	healer_controller.advance_intent()
-	failed = _check(healer.current_intent.kind == EnemyIntentScript.Kind.HEAL and healer.current_intent.value > 0 and "Лечение" in healer.current_intent.display_text(), "Healer telegraphs healing with exact value") or failed
+	failed = _check(healer.current_intent.kind == EnemyIntentScript.Kind.HEAL and healer.current_intent.value > 0 and str(healer.current_intent.value) in healer.current_intent.display_text(), "Healer telegraphs healing with exact value") or failed
 
 	var curser = factory.create(definitions[2], 3)
 	var curser_controller = EnemyControllerScript.new(curser, board, 12, 3)
 	curser_controller.advance_intent()
-	failed = _check(curser.current_intent.kind == EnemyIntentScript.Kind.SPECIAL and "пустой камень" in curser.current_intent.display_text(), "Curser telegraphs blocker special by name and value") or failed
+	failed = _check(curser.current_intent.kind == EnemyIntentScript.Kind.SPECIAL and curser.current_intent.title == definitions[2].special_title, "Curser telegraphs blocker special by name and value") or failed
 	var battle = BattleStateScript.new(HeroStateScript.new(100), curser)
 	EnemyIntentExecutorScript.new().execute(curser.current_intent, battle)
 	failed = _check(_count_blockers(board) == 1, "Curser special adds a visible empty stone") or failed

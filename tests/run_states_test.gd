@@ -23,8 +23,8 @@ func _run() -> void:
 	state.finish_defeat(125.0)
 	failed = _check(state.status == RunStateScript.Status.DEFEAT_SUMMARY, "Defeat changes the run to summary state") or failed
 	var summary := state.summary_text()
-	failed = _check("бой 7" in summary and "Побед: 6" in summary and "02:05" in summary, "Summary contains depth, victories and duration") or failed
-	failed = _check("Магазинов: 2" in summary and "Уровень: 4" in summary and "Монеты: 87" in summary and "Реликвии: 1" in summary, "Summary contains key run results") or failed
+	var expected_summary: String = tr("Глубина: бой %d · Побед: %d\nДлительность: %02d:%02d · Магазинов: %d\nУровень: %d · Монеты: %d · Реликвии: %d") % [7, 6, 2, 5, 2, 4, 87, 1]
+	failed = _check(summary == expected_summary and "02:05" in summary, "Summary contains depth, victories, duration and key run results") or failed
 
 	var screen = (load("res://ui/run/first_biome_run.tscn") as PackedScene).instantiate()
 	screen.setup(state)

@@ -57,9 +57,9 @@ func _run() -> void:
 	root.add_child(run_screen)
 	await process_frame
 	var background := run_screen.get_node("RuinsBackground") as ColorRect
-	failed = _check(background.color.g > background.color.r and "Заросшие руины" in run_screen.node_title_label.text, "Run screen uses a readable green ruins palette and node title") or failed
+	failed = _check(background.color.g > background.color.r and run_screen.node_title_label.text == ui_state.node_title(), "Run screen uses a readable green ruins palette and node title") or failed
 	failed = _check(run_screen.journey_hero.visible and run_screen.journey_stage.size.y > 0.0, "Hero remains visible on the persistent journey stage") or failed
-	failed = _check(run_screen.encounter_avatar.visible and "ВРАГ" in run_screen.encounter_label.text and run_screen.is_travelling, "Enemy encounter appears on the journey screen while the hero advances") or failed
+	failed = _check(run_screen.encounter_avatar.visible and not run_screen.encounter_label.text.is_empty() and run_screen.is_travelling, "Enemy encounter appears on the journey screen while the hero advances") or failed
 	var fixed_hero_x: float = run_screen.journey_hero.position.x
 	var moving_background_x: float = run_screen.road_marks.position.x
 	await create_timer(0.3).timeout
@@ -75,7 +75,7 @@ func _run() -> void:
 		run_screen._on_battle_completed()
 		await process_frame
 	var shop_after_battle: int = ui_state.battle_number
-	failed = _check(run_screen.journey_hero.visible and "ТОРГОВЕЦ" in run_screen.encounter_label.text, "Merchant and goods share the persistent journey screen") or failed
+	failed = _check(run_screen.journey_hero.visible and ui_state.current_kind == RunStateScript.NodeKind.SHOP and not run_screen.encounter_label.text.is_empty(), "Merchant and goods share the persistent journey screen") or failed
 	failed = _check(run_screen.current_screen.shop.hero == ui_hero, "Generated shop transition opens the real shop with the same hero") or failed
 	await create_timer(2.2).timeout
 	root.size = Vector2i(640, 360)
@@ -95,9 +95,13 @@ func _run() -> void:
 	battle_screen.battle_completed.connect(func() -> void: automatic_transitions[0] += 1)
 	var battle_hero_x: float = battle_screen.hero_portrait.position.x
 	battle_screen._grant_victory_experience()
+	var expected_reward_text: String = tr("+%d опыта · +%d монет") % [
+		battle_screen._battle.enemy.experience_reward,
+		battle_screen._battle.enemy.base_coin_reward,
+	]
 	failed = _check(
 		battle_screen.battle_transition_overlay.visible
-		and "опыта" in battle_screen.battle_reward_label.text
+		and battle_screen.battle_reward_label.text == expected_reward_text
 		and battle_screen.get_node("%TransitionBackdrop").color.a >= 0.9
 		and not battle_screen.enemy_portrait.visible
 		and not battle_screen.enemy_intent_icon.visible

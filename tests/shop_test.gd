@@ -108,7 +108,7 @@ func _run() -> void:
 	var ui_hero = HeroStateScript.new(100, 50)
 	ui_hero.coins = 100
 	screen.setup(ui_hero, 4)
-	failed = _check(screen.item_buttons.size() == 4 and "Обновить · 15" == screen.refresh_button.text, "Shop screen presents assortment and refresh price") or failed
+	failed = _check(screen.item_buttons.size() == 4 and tr("Обновить · %s") % "15" == screen.refresh_button.text, "Shop screen presents assortment and refresh price") or failed
 	screen.queue_free()
 	await process_frame
 	quit(1 if failed else 0)

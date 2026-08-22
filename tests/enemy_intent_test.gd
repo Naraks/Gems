@@ -22,7 +22,7 @@ func _init() -> void:
 	var weak_result = resolver.resolve(physical, weak_battle)
 	failed = _check(weak_result.physical_damage_applied == 15, "Weakness multiplies damage by 1.50 before reveal") or failed
 	failed = _check(weak_result.weakness_revealed and weak_result.weakness_hit and not weak_result.weakness_inferred, "Matching first attack reveals weakness directly") or failed
-	failed = _check(weak_enemy.weakness_display() == "меч", "Revealed weakness is visible") or failed
+	failed = _check(weak_enemy.weakness_display() == AttackTypeScript.display_name(AttackTypeScript.Kind.PHYSICAL), "Revealed weakness is visible") or failed
 
 	var inferred_enemy = EnemyStateScript.new(100)
 	inferred_enemy.configure_affinities(AttackTypeScript.Kind.PHYSICAL)
@@ -44,7 +44,7 @@ func _init() -> void:
 	var intent_battle = BattleStateScript.new(HeroStateScript.new(100), intent_enemy)
 	var attack = EnemyIntentScript.new(EnemyIntentScript.Kind.ATTACK, 8)
 	intent_enemy.current_intent = attack
-	failed = _check(attack.display_text() == "Атака: 8", "Attack intent shows its exact value") or failed
+	failed = _check(attack.display_text() == "%s 8" % tr("Атака"), "Attack intent shows its exact value") or failed
 	executor.execute(intent_enemy.current_intent, intent_battle)
 	failed = _check(intent_battle.hero.health == 92, "Displayed attack intent is executed") or failed
 	executor.execute(EnemyIntentScript.new(EnemyIntentScript.Kind.HEAL, 12), intent_battle)

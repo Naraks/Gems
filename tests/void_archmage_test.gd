@@ -35,23 +35,23 @@ func _run() -> void:
 	var battle = BattleStateScript.new(HeroStateScript.new(300), boss)
 	var executor = EnemyIntentExecutorScript.new()
 
-	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.ATTACK and "Магия" in boss.current_intent.display_text(), "Cycle starts with a telegraphed magic attack") or failed
+	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.ATTACK and boss.current_intent.title == definition.attack_title, "Cycle starts with a telegraphed magic attack") or failed
 	controller.advance_intent()
-	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.SPECIAL and "поворот поля" in boss.current_intent.display_text(), "Second action telegraphs the field shift") or failed
+	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.SPECIAL and boss.current_intent.title == definition.special_title, "Second action telegraphs the field shift") or failed
 	executor.execute(boss.current_intent, battle)
 	failed = _check(board.cells() == PackedInt32Array([0, 1, 2, 0, 1, 2, 0, 1, 2, 1, 2, 0, 1, 0, 1, 2]), "Shift rotates the board clockwise without losing tiles") or failed
 	failed = _check(not board.has_any_match() and board.has_valid_move(), "Rotated field remains stable and playable") or failed
 
 	controller.advance_intent()
-	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.ATTACK and "Магия" in boss.current_intent.display_text(), "Third action returns to empowered magic") or failed
+	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.ATTACK and boss.current_intent.title == definition.attack_title, "Third action returns to empowered magic") or failed
 	controller.advance_intent()
-	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.SPECIAL and "Смена" in boss.current_intent.display_text(), "Fourth action clearly telegraphs affinity change") or failed
+	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.SPECIAL and boss.current_intent.title == definition.alternate_special_title, "Fourth action clearly telegraphs affinity change") or failed
 	var old_weakness: int = boss.weakness_type
 	var old_resistance: int = boss.resistance_type
 	executor.execute(boss.current_intent, battle)
 	failed = _check(boss.weakness_type == old_resistance and boss.resistance_type == old_weakness, "Every fourth action swaps weakness and resistance") or failed
 	failed = _check(is_equal_approx(boss.magic_damage_multiplier, 1.5) and is_equal_approx(boss.physical_damage_multiplier, 0.65), "Damage multipliers follow the swapped affinities") or failed
-	failed = _check(boss.weakness_display() == "?" and AttackTypeScript.display_name(boss.resistance_type) == "меч", "Changed affinities are reset and readable by the HUD") or failed
+	failed = _check(boss.weakness_display() == "?" and AttackTypeScript.display_name(boss.resistance_type) == AttackTypeScript.display_name(AttackTypeScript.Kind.PHYSICAL), "Changed affinities are reset and readable by the HUD") or failed
 	controller.advance_intent()
 	failed = _check(boss.current_intent.kind == EnemyIntentScript.Kind.ATTACK, "Four-action cycle repeats from magic") or failed
 
@@ -59,7 +59,7 @@ func _run() -> void:
 	main.battle_number = 30
 	root.add_child(main)
 	await process_frame
-	failed = _check("Архимаг пустоты" in main.enemy_title_label.text and "Магия пустоты" in main.enemy_intent_label.text, "Battle 30 HUD names the boss and its magic intent") or failed
+	failed = _check(tr(definition.display_name) in main.enemy_title_label.text and tr(definition.attack_title) in main.enemy_intent_label.text, "Battle 30 HUD names the boss and its magic intent") or failed
 	main.queue_free()
 	await process_frame
 	quit(1 if failed else 0)

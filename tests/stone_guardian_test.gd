@@ -11,6 +11,7 @@ const BoardModelScript = preload("res://core/board/board_model.gd")
 const BoardResolutionResultScript = preload("res://core/board/board_resolution_result.gd")
 const CombatCalculatorScript = preload("res://core/combat/combat_calculator.gd")
 const TileTypeScript = preload("res://core/board/tile_type.gd")
+const AttackTypeScript = preload("res://core/combat/attack_type.gd")
 
 
 func _init() -> void:
@@ -34,7 +35,7 @@ func _run() -> void:
 	failed = _check(
 		boss.current_intent.kind == EnemyIntentScript.Kind.SPECIAL
 		and boss.current_intent.value == 3
-		and "Подготовка" in boss.current_intent.display_text(),
+		and boss.current_intent.title == definition.special_title,
 		"Boss clearly telegraphs preparation of three blockers",
 	) or failed
 	var battle = BattleStateScript.new(HeroStateScript.new(100), boss)
@@ -60,7 +61,7 @@ func _run() -> void:
 	main.battle_number = 10
 	root.add_child(main)
 	await process_frame
-	failed = _check("Каменный страж" in main.enemy_title_label.text and "меч" in main.resistance_label.text, "Battle 10 HUD names boss and shows resistance") or failed
+	failed = _check(tr(definition.display_name) in main.enemy_title_label.text and AttackTypeScript.display_name(boss.resistance_type) in main.resistance_label.text, "Battle 10 HUD names boss and shows resistance") or failed
 	var special = EnemyIntentScript.new(EnemyIntentScript.Kind.SPECIAL, 3, "Подготовка: Каменный обвал")
 	await main._show_special_feedback(special)
 	failed = _check(not main.special_feedback_label.visible and not main.board_flash.visible, "Stonefall has a dedicated completed flash and caption") or failed
