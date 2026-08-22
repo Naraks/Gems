@@ -73,12 +73,13 @@ func _run() -> void:
 
 func _has_required_hud(main: Control) -> bool:
 	return (
-		"Бой" in main.get_node("%BattleNumberLabel").text
+		not main.get_node("%BattleNumberLabel").text.is_empty()
 		and "HP" in main.get_node("%HeroHealthLabel").text
 		and "HP" in main.get_node("%EnemyHealthLabel").text
+		and main.get_node("%EnemyIntentIcon").visible
 		and not main.get_node("%EnemyIntentIcon").tooltip_text.is_empty()
-		and "Слабость" in main.get_node("%WeaknessLabel").text
-		and "Монеты" in main.get_node("%CoinsLabel").text
+		and not main.get_node("%WeaknessLabel").text.is_empty()
+		and not main.get_node("%CoinsLabel").text.is_empty()
 	)
 
 
