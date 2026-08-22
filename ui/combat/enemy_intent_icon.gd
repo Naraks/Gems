@@ -47,9 +47,27 @@ func _draw_value_badge() -> void:
 
 
 func _draw_sword() -> void:
-	draw_line(Vector2(18, 37), Vector2(39, 16), Color("ff6b55"), 7.0)
-	draw_line(Vector2(16, 35), Vector2(23, 42), Color("f0bd3f"), 5.0)
-	draw_line(Vector2(14, 42), Vector2(20, 36), Color("9b5b36"), 5.0)
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(23, 11), Vector2(29, 3), Vector2(35, 11),
+		Vector2(35, 29), Vector2(32, 34), Vector2(26, 34), Vector2(23, 29),
+	]), Color("#7f2526"))
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(25, 11), Vector2(29, 5), Vector2(29, 32), Vector2(26, 29),
+	]), Color("#ff9a72"))
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(29, 5), Vector2(33, 11), Vector2(33, 29), Vector2(30, 32), Vector2(29, 32),
+	]), Color("#d9443e"))
+	draw_rect(Rect2(14, 29, 30, 8), Color("#101514"), true)
+	draw_rect(Rect2(16, 31, 26, 4), Color("#d8a13c"), true)
+	draw_rect(Rect2(14, 31, 5, 4), Color("#ffd36a"), true)
+	draw_rect(Rect2(39, 31, 5, 4), Color("#ffd36a"), true)
+	draw_rect(Rect2(24, 36, 10, 12), Color("#101514"), true)
+	draw_rect(Rect2(26, 36, 6, 12), Color("#75402e"), true)
+	draw_rect(Rect2(26, 38, 6, 2), Color("#df8750"), true)
+	draw_rect(Rect2(26, 43, 6, 2), Color("#df8750"), true)
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(23, 47), Vector2(35, 47), Vector2(39, 52), Vector2(19, 52),
+	]), Color("#d8a13c"))
 
 
 func _draw_heal() -> void:

@@ -32,6 +32,7 @@ const SLOT_COLOR := Color("#24302e")
 const SLOT_INSET := Color("#182321")
 const PIXEL_OUTLINE := Color("#101514")
 const PIXEL_HIGHLIGHT := Color("#fff2c7")
+const GEM_PIXEL_GRID := 24.0
 const MATCH_SECONDS := 0.18
 const SWAP_SECONDS := 0.14
 const INVALID_HOLD_SECONDS := 0.07
@@ -166,6 +167,9 @@ func play_resolution(resolution: RefCounted) -> void:
 	_animation_speed = 1.0
 	_clear_hover()
 	for step in resolution.steps:
+		if step.index > 1:
+			_play_sfx(&"cascade")
+		_play_sfx(_gem_sound_for_step(step))
 		_animation_cascade_index = step.index
 		_animation_multiplier = step.multiplier
 		_animation_cells = step.before_cells
@@ -192,6 +196,7 @@ func play_resolution(resolution: RefCounted) -> void:
 
 func play_swap(first: Vector2i, second: Vector2i, before_cells: PackedInt32Array) -> void:
 	reset_hint_timer()
+	_play_sfx(&"swap")
 	animation_active = true
 	_animation_speed = 1.0
 	_animation_cells = before_cells.duplicate()
@@ -435,27 +440,62 @@ func _draw_cascade_label(board_rect: Rect2) -> void:
 
 
 func _draw_pixel_gem(tile: int, rect: Rect2) -> void:
-	var color: Color = TILE_COLORS[tile]
 	match tile:
 		TileTypeScript.Value.SWORD:
-			_draw_pixel_shape(rect, [Vector2(11, 1), Vector2(15, 1), Vector2(15, 5), Vector2(9, 11), Vector2(11, 13), Vector2(9, 15), Vector2(7, 12), Vector2(5, 14), Vector2(3, 12), Vector2(5, 10)], color)
-			_draw_pixel_shape(rect, [Vector2(12, 3), Vector2(14, 2), Vector2(14, 4), Vector2(8, 10), Vector2(7, 9)], color.lightened(0.32), false)
-			_draw_pixel_shape(rect, [Vector2(4, 9), Vector2(6, 8), Vector2(10, 12), Vector2(9, 14)], Color("#f0bd3f"), false)
-			_draw_pixel_shape(rect, [Vector2(3, 12), Vector2(5, 14), Vector2(4, 16), Vector2(1, 13)], Color("#9b5b36"), false)
+			_draw_pixel_shape(rect, [Vector2(8, 5), Vector2(12, 0), Vector2(16, 5), Vector2(16, 14), Vector2(14, 17), Vector2(10, 17), Vector2(8, 14)], Color("#7f2526"))
+			_draw_pixel_shape(rect, [Vector2(9, 5), Vector2(12, 1), Vector2(12, 16), Vector2(10, 14)], Color("#ff9a72"), false)
+			_draw_pixel_shape(rect, [Vector2(12, 1), Vector2(15, 5), Vector2(15, 14), Vector2(13, 16), Vector2(12, 16)], Color("#d9443e"), false)
+			_draw_pixel_rect(rect, Rect2(2, 14, 20, 5), PIXEL_OUTLINE)
+			_draw_pixel_rect(rect, Rect2(3, 15, 18, 3), Color("#a86d21"))
+			_draw_pixel_rect(rect, Rect2(4, 15, 16, 1), Color("#ffd36a"))
+			_draw_pixel_rect(rect, Rect2(2, 15, 3, 3), Color("#d99c36"))
+			_draw_pixel_rect(rect, Rect2(19, 15, 3, 3), Color("#d99c36"))
+			_draw_pixel_rect(rect, Rect2(9, 18, 6, 5), PIXEL_OUTLINE)
+			_draw_pixel_rect(rect, Rect2(10, 18, 4, 5), Color("#713d30"))
+			_draw_pixel_rect(rect, Rect2(10, 18, 4, 1), Color("#e28b4d"))
+			_draw_pixel_rect(rect, Rect2(10, 20, 4, 1), Color("#e28b4d"))
+			_draw_pixel_shape(rect, [Vector2(9, 22), Vector2(15, 22), Vector2(17, 24), Vector2(7, 24)], Color("#b97922"))
+			_draw_pixel_rect(rect, Rect2(10, 22, 4, 1), Color("#ffe184"))
 		TileTypeScript.Value.MAGIC:
-			_draw_pixel_shape(rect, [Vector2(8, 0), Vector2(10, 6), Vector2(16, 8), Vector2(10, 10), Vector2(8, 16), Vector2(6, 10), Vector2(0, 8), Vector2(6, 6)], color)
-			_draw_pixel_shape(rect, [Vector2(8, 4), Vector2(9, 7), Vector2(12, 8), Vector2(9, 9), Vector2(8, 12), Vector2(7, 9), Vector2(4, 8), Vector2(7, 7)], PIXEL_HIGHLIGHT, false)
+			_draw_pixel_shape(rect, [Vector2(12, 0), Vector2(15, 8), Vector2(24, 12), Vector2(15, 15), Vector2(12, 24), Vector2(9, 15), Vector2(0, 12), Vector2(9, 8)], Color("#273e9d"))
+			_draw_pixel_shape(rect, [Vector2(12, 2), Vector2(14, 10), Vector2(22, 12), Vector2(14, 14), Vector2(12, 22), Vector2(10, 14), Vector2(2, 12), Vector2(10, 10)], Color("#5d82ff"), false)
+			_draw_pixel_shape(rect, [Vector2(12, 3), Vector2(12, 12), Vector2(9, 10)], Color("#91adff"), false)
+			_draw_pixel_shape(rect, [Vector2(3, 12), Vector2(12, 12), Vector2(9, 10)], Color("#91adff"), false)
+			_draw_pixel_shape(rect, [Vector2(12, 12), Vector2(21, 12), Vector2(14, 14), Vector2(12, 21)], Color("#365bcf"), false)
+			_draw_pixel_shape(rect, [Vector2(12, 7), Vector2(14, 11), Vector2(18, 12), Vector2(14, 13), Vector2(12, 17), Vector2(10, 13), Vector2(6, 12), Vector2(10, 11)], Color("#f5f0ce"), false)
+			_draw_pixel_rect(rect, Rect2(11, 10, 3, 3), Color("#ffffff"))
+			for sparkle in [Rect2(3, 5, 2, 2), Rect2(19, 5, 1, 2), Rect2(4, 18, 1, 1), Rect2(19, 18, 2, 1)]:
+				_draw_pixel_rect(rect, sparkle, Color("#9fc2ff"))
 		TileTypeScript.Value.HEART:
-			_draw_pixel_shape(rect, [Vector2(2, 4), Vector2(4, 2), Vector2(7, 2), Vector2(8, 4), Vector2(9, 2), Vector2(12, 2), Vector2(14, 4), Vector2(14, 8), Vector2(8, 15), Vector2(2, 8)], color)
-			_draw_pixel_shape(rect, [Vector2(4, 4), Vector2(6, 4), Vector2(7, 6), Vector2(5, 7), Vector2(4, 6)], color.lightened(0.38), false)
+			_draw_pixel_shape(rect, [Vector2(2, 6), Vector2(6, 2), Vector2(10, 2), Vector2(12, 5), Vector2(14, 2), Vector2(19, 2), Vector2(23, 6), Vector2(23, 12), Vector2(12, 23), Vector2(1, 12)], Color("#9d2759"))
+			_draw_pixel_shape(rect, [Vector2(3, 7), Vector2(7, 3), Vector2(10, 4), Vector2(12, 8), Vector2(14, 4), Vector2(19, 3), Vector2(22, 7), Vector2(21, 12), Vector2(12, 21), Vector2(3, 12)], Color("#ef5798"), false)
+			_draw_pixel_shape(rect, [Vector2(12, 8), Vector2(21, 6), Vector2(21, 12), Vector2(12, 21)], Color("#bd356e"), false)
+			_draw_pixel_shape(rect, [Vector2(4, 7), Vector2(7, 4), Vector2(10, 5), Vector2(10, 9), Vector2(7, 11), Vector2(4, 10)], Color("#ff9fc7"), false)
+			_draw_pixel_rect(rect, Rect2(5, 5, 4, 3), Color("#ffd4e5"))
+			_draw_pixel_shape(rect, [Vector2(7, 13), Vector2(12, 18), Vector2(12, 21), Vector2(4, 13)], Color("#db417e"), false)
 		TileTypeScript.Value.COIN:
-			_draw_pixel_shape(rect, [Vector2(5, 1), Vector2(11, 1), Vector2(15, 5), Vector2(15, 11), Vector2(11, 15), Vector2(5, 15), Vector2(1, 11), Vector2(1, 5)], color)
-			_draw_pixel_shape(rect, [Vector2(6, 4), Vector2(10, 4), Vector2(12, 6), Vector2(12, 10), Vector2(10, 12), Vector2(6, 12), Vector2(4, 10), Vector2(4, 6)], color.darkened(0.22), false)
-			_draw_pixel_shape(rect, [Vector2(6, 4), Vector2(9, 4), Vector2(9, 6), Vector2(6, 6)], PIXEL_HIGHLIGHT, false)
+			_draw_pixel_shape(rect, [Vector2(7, 1), Vector2(17, 1), Vector2(23, 7), Vector2(23, 17), Vector2(17, 23), Vector2(7, 23), Vector2(1, 17), Vector2(1, 7)], Color("#9d6a14"))
+			_draw_pixel_shape(rect, [Vector2(7, 2), Vector2(17, 2), Vector2(22, 7), Vector2(22, 17), Vector2(17, 22), Vector2(7, 22), Vector2(2, 17), Vector2(2, 7)], Color("#efb62d"), false)
+			_draw_pixel_shape(rect, [Vector2(8, 5), Vector2(16, 5), Vector2(19, 8), Vector2(19, 16), Vector2(16, 19), Vector2(8, 19), Vector2(5, 16), Vector2(5, 8)], Color("#b77d18"), false)
+			_draw_pixel_shape(rect, [Vector2(9, 6), Vector2(16, 6), Vector2(18, 9), Vector2(18, 15), Vector2(15, 18), Vector2(9, 18), Vector2(6, 15), Vector2(6, 9)], Color("#dca025"), false)
+			_draw_pixel_rect(rect, Rect2(7, 4, 9, 2), Color("#ffe277"))
+			_draw_pixel_rect(rect, Rect2(7, 7, 3, 8), Color("#f5c84a"))
+			_draw_pixel_rect(rect, Rect2(10, 8, 6, 2), Color("#fff0a0"))
+			_draw_pixel_rect(rect, Rect2(10, 9, 2, 7), Color("#fff0a0"))
+			_draw_pixel_rect(rect, Rect2(11, 14, 5, 2), Color("#fff0a0"))
+			_draw_pixel_rect(rect, Rect2(14, 12, 2, 3), Color("#fff0a0"))
+			_draw_pixel_rect(rect, Rect2(17, 17, 2, 2), Color("#835311"))
 		TileTypeScript.Value.EMPTY_STONE:
-			_draw_pixel_shape(rect, [Vector2(8, 1), Vector2(14, 5), Vector2(15, 10), Vector2(10, 15), Vector2(5, 14), Vector2(1, 10), Vector2(2, 5)], color.lightened(0.12))
-			_draw_pixel_shape(rect, [Vector2(7, 4), Vector2(11, 5), Vector2(9, 8), Vector2(5, 8), Vector2(4, 6)], color.lightened(0.28), false)
-			_draw_pixel_shape(rect, [Vector2(9, 10), Vector2(13, 9), Vector2(10, 13), Vector2(7, 13)], color.darkened(0.3), false)
+			_draw_pixel_shape(rect, [Vector2(10, 1), Vector2(17, 3), Vector2(22, 8), Vector2(23, 15), Vector2(17, 22), Vector2(9, 23), Vector2(2, 18), Vector2(1, 10), Vector2(5, 4)], Color("#515c61"))
+			_draw_pixel_shape(rect, [Vector2(10, 2), Vector2(17, 4), Vector2(21, 8), Vector2(21, 14), Vector2(16, 20), Vector2(9, 21), Vector2(3, 17), Vector2(3, 10), Vector2(6, 5)], Color("#929da3"), false)
+			_draw_pixel_shape(rect, [Vector2(7, 5), Vector2(15, 4), Vector2(18, 8), Vector2(14, 11), Vector2(6, 10), Vector2(4, 8)], Color("#c0c9cd"), false)
+			_draw_pixel_shape(rect, [Vector2(14, 11), Vector2(21, 9), Vector2(21, 15), Vector2(16, 20), Vector2(10, 18)], Color("#69757b"), false)
+			_draw_pixel_shape(rect, [Vector2(3, 11), Vector2(9, 11), Vector2(10, 18), Vector2(7, 20), Vector2(3, 17)], Color("#7d898f"), false)
+			_draw_pixel_shape(rect, [Vector2(8, 6), Vector2(13, 5), Vector2(12, 8), Vector2(7, 9)], Color("#e2e7e8"), false)
+			_draw_pixel_line(rect, Vector2(13, 9), Vector2(11, 13), Color("#434d52"), 1.5)
+			_draw_pixel_line(rect, Vector2(11, 13), Vector2(15, 16), Color("#434d52"), 1.5)
+			_draw_pixel_line(rect, Vector2(11, 13), Vector2(8, 17), Color("#434d52"), 1.5)
+			_draw_pixel_line(rect, Vector2(15, 16), Vector2(18, 15), Color("#434d52"), 1.0)
 
 
 func _draw_pixel_shape(rect: Rect2, points: Array[Vector2], color: Color, outline := true) -> void:
@@ -463,18 +503,30 @@ func _draw_pixel_shape(rect: Rect2, points: Array[Vector2], color: Color, outlin
 	for point in points:
 		polygon.append(_pixel_point(rect, point))
 	if outline:
-		var shadow := PackedVector2Array()
-		var pixel := maxf(1.0, floorf(rect.size.x / 16.0))
-		for point in polygon:
-			shadow.append(point + Vector2(pixel, pixel))
-		draw_colored_polygon(shadow, PIXEL_OUTLINE)
+		var pixel := maxf(1.0, floorf(rect.size.x / GEM_PIXEL_GRID))
+		for offset in [Vector2(-pixel, 0), Vector2(pixel, 0), Vector2(0, -pixel), Vector2(0, pixel), Vector2(pixel, pixel)]:
+			var shadow := PackedVector2Array()
+			for point in polygon:
+				shadow.append(point + offset)
+			draw_colored_polygon(shadow, PIXEL_OUTLINE)
 	draw_colored_polygon(polygon, color)
+
+
+func _draw_pixel_rect(rect: Rect2, pixel_rect: Rect2, color: Color) -> void:
+	var from := _pixel_point(rect, pixel_rect.position)
+	var to := _pixel_point(rect, pixel_rect.end)
+	draw_rect(Rect2(from, to - from), color, true)
+
+
+func _draw_pixel_line(rect: Rect2, from: Vector2, to: Vector2, color: Color, width_in_pixels: float) -> void:
+	var pixel_width := maxf(1.0, floorf(rect.size.x / GEM_PIXEL_GRID) * width_in_pixels)
+	draw_line(_pixel_point(rect, from), _pixel_point(rect, to), color, pixel_width, false)
 
 
 func _pixel_point(rect: Rect2, point: Vector2) -> Vector2:
 	return Vector2(
-		roundf(rect.position.x + point.x * rect.size.x / 16.0),
-		roundf(rect.position.y + point.y * rect.size.y / 16.0),
+		roundf(rect.position.x + point.x * rect.size.x / GEM_PIXEL_GRID),
+		roundf(rect.position.y + point.y * rect.size.y / GEM_PIXEL_GRID),
 	)
 
 
@@ -542,3 +594,29 @@ func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
 func _on_selection_changed(_position: Vector2i) -> void:
 	notify_player_interaction()
 	queue_redraw()
+
+
+func _play_sfx(sound_name: StringName) -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service != null:
+		audio_service.play_sfx(sound_name)
+
+
+func _gem_sound_for_step(step: RefCounted) -> StringName:
+	var counts := PackedInt32Array()
+	counts.resize(TileTypeScript.COUNT)
+	for position in step.removed_cells:
+		var tile := _cell_from_snapshot(step.before_cells, position)
+		if tile >= 0 and tile < counts.size():
+			counts[tile] += 1
+	var dominant_tile := TileTypeScript.Value.SWORD
+	for tile in counts.size():
+		if counts[tile] > counts[dominant_tile]:
+			dominant_tile = tile
+	match dominant_tile:
+		TileTypeScript.Value.SWORD: return &"gem_sword"
+		TileTypeScript.Value.MAGIC: return &"gem_magic"
+		TileTypeScript.Value.HEART: return &"gem_heart"
+		TileTypeScript.Value.COIN: return &"gem_coin"
+		TileTypeScript.Value.EMPTY_STONE: return &"gem_stone"
+	return &"match"

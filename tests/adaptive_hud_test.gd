@@ -58,6 +58,9 @@ func _run() -> void:
 		"Hero and enemy portraits share the same vertical level",
 	) or failed
 	var board_view := main.get_node("%BoardView") as Control
+	failed = _check(main.get_node("%MusicToggleButton").visible and main.get_node("%SfxToggleButton").visible, "Audio pictograms remain visible when the embedded battle heading is hidden") or failed
+	failed = _check(main.get_node("%SfxToggleButton").get_global_rect().end.x < main.enemy_portrait.get_global_rect().position.x, "Audio controls stay outside the enemy intent area") or failed
+	failed = _check(main.get_node("%MusicToggleButton").get_global_rect().position.y > main.size.y * 0.80, "Audio controls stay below battle captions") or failed
 	failed = _check(not board_view.tooltip_for_position(board_view.size * 0.5).is_empty(), "Gem meaning is available as an in-board hover tooltip") or failed
 	root.size = Vector2i(640, 360)
 	await process_frame

@@ -9,6 +9,8 @@ const LocalizationServiceScript = preload("res://core/localization/localization_
 
 @onready var node_title_label: Label = %NodeTitleLabel
 @onready var language_selector: OptionButton = %LanguageSelector
+@onready var music_volume_slider: HSlider = %MusicVolumeSlider
+@onready var sfx_volume_slider: HSlider = %SfxVolumeSlider
 @onready var content: Control = %RunContent
 @onready var completion_panel: Control = %BiomeComplete
 @onready var completion_summary: Label = %CompletionSummary
@@ -33,6 +35,7 @@ var _collapse_tween: Tween
 var _encounter_intro_active := false
 var _journey_speed := 1.0
 @export var localization_settings_path := LocalizationServiceScript.SETTINGS_PATH
+@export var audio_settings_path := "user://settings.cfg"
 
 
 func _ready() -> void:
@@ -42,6 +45,13 @@ func _ready() -> void:
 	language_selector.add_item("English")
 	language_selector.select(1 if locale == "en" else 0)
 	language_selector.item_selected.connect(_on_language_selected)
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service != null:
+		audio_service.load_settings(audio_settings_path)
+		music_volume_slider.value = audio_service.music_volume * 100.0
+		sfx_volume_slider.value = audio_service.sfx_volume * 100.0
+	music_volume_slider.value_changed.connect(_on_music_volume_changed)
+	sfx_volume_slider.value_changed.connect(_on_sfx_volume_changed)
 	return_to_menu_button.pressed.connect(_on_return_to_menu)
 	new_run_button.pressed.connect(_start_new_run)
 	if run_state == null:
@@ -220,3 +230,15 @@ func _on_language_selected(index: int) -> void:
 	node_title_label.text = run_state.node_title()
 	if current_screen != null and current_screen.has_method("refresh_localized_text"):
 		current_screen.refresh_localized_text()
+
+
+func _on_music_volume_changed(value: float) -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service != null:
+		audio_service.set_music_volume(value / 100.0)
+
+
+func _on_sfx_volume_changed(value: float) -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service != null:
+		audio_service.set_sfx_volume(value / 100.0)

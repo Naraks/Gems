@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://ui/main/main.gd" id="1_main"]
 [ext_resource type="Resource" path="res://data/game_rules.tres" id="2_rules"]
@@ -8,6 +8,7 @@
 [ext_resource type="Theme" path="res://ui/theme/pixel_theme.tres" id="6_theme"]
 [ext_resource type="Script" path="res://ui/combat/enemy_intent_icon.gd" id="7_intent_icon"]
 [ext_resource type="Script" path="res://ui/combat/pixel_battle_transition.gd" id="8_pixel_transition"]
+[ext_resource type="Script" path="res://ui/audio/pixel_audio_button.gd" id="9_audio_button"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -55,7 +56,7 @@ theme_override_constants/separation = 0
 [node name="TopBar" type="MarginContainer" parent="Layout/BoardArea/BoardLayout"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_constants/margin_left = 12
+theme_override_constants/margin_left = 144
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 4
@@ -230,6 +231,32 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Сопротивление: нет"
 horizontal_alignment = 1
+
+[node name="AudioControls" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -60.0
+offset_right = 132.0
+offset_bottom = -12.0
+grow_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="MusicToggleButton" type="Button" parent="AudioControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 48)
+layout_mode = 2
+tooltip_text = "Включить музыку"
+script = ExtResource("9_audio_button")
+
+[node name="SfxToggleButton" type="Button" parent="AudioControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 48)
+layout_mode = 2
+tooltip_text = "Выключить звук"
+script = ExtResource("9_audio_button")
+kind = 1
 
 [node name="FeedbackLayer" type="Control" parent="."]
 unique_name_in_owner = true

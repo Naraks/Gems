@@ -52,6 +52,8 @@ var run_hero: RefCounted
 @onready var turn_result_label: Label = %TurnResultLabel
 @onready var battle_number_label: Label = %BattleNumberLabel
 @onready var cycle_modifier_label: Label = %CycleModifierLabel
+@onready var music_toggle_button: Button = %MusicToggleButton
+@onready var sfx_toggle_button: Button = %SfxToggleButton
 @onready var pause_overlay: ColorRect = %PauseOverlay
 @onready var hero_health_label: Label = %HeroHealthLabel
 @onready var hero_portrait: Control = %HeroPortrait
@@ -133,6 +135,9 @@ func _ready() -> void:
 		else EnemyCatalogScript.new().for_battle(battle_number)
 	)
 	var enemy = EnemyFactoryScript.new().create(enemy_definition, battle_number, hero.weakness_multiplier)
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service != null:
+		audio_service.play_music_for_battle(battle_number, enemy_definition.is_boss)
 	hero_portrait.setup(CombatantPortrait.Role.HERO, Color("4e78d0"), "⚔")
 	enemy_portrait.setup(
 		CombatantPortrait.Role.ENEMY,
@@ -153,6 +158,9 @@ func _ready() -> void:
 	board_view.setup(_board)
 	board_view.set_hint_enabled(tutorial_completed)
 	board_view.swap_requested.connect(_on_swap_requested)
+	music_toggle_button.pressed.connect(_toggle_music)
+	sfx_toggle_button.pressed.connect(_toggle_sfx)
+	_update_audio_buttons()
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
 	resized.connect(_apply_responsive_style)
@@ -324,6 +332,7 @@ func _play_combat_feedback(result: RefCounted, _cascade_count: int) -> void:
 	feedback_events.clear()
 	var total_damage: int = result.physical_damage_applied + result.magic_damage_applied
 	if total_damage > 0:
+		_play_sfx(&"damage")
 		var attack_state := CombatantPortrait.State.MAGIC if result.magic_damage_applied > result.physical_damage_applied else CombatantPortrait.State.SWORD
 		hero_portrait.play_state(attack_state)
 		enemy_portrait.play_state(CombatantPortrait.State.HURT)
@@ -356,6 +365,7 @@ func _play_combat_feedback(result: RefCounted, _cascade_count: int) -> void:
 			feedback_events.append("relic_delay")
 			await _float_feedback(enemy_feedback_label, tr("ЗЕРКАЛЬНЫЙ ОСКОЛОК · ЗАДЕРЖАНО"), Color("#b9d7ff"))
 		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.ATTACK:
+			_play_sfx(&"damage")
 			enemy_portrait.play_state(CombatantPortrait.State.ATTACK)
 			hero_portrait.play_state(CombatantPortrait.State.HURT)
 			feedback_events.append("enemy_attack")
@@ -372,8 +382,10 @@ func _play_combat_feedback(result: RefCounted, _cascade_count: int) -> void:
 		elif result.enemy_intent != null and result.enemy_intent.kind == EnemyIntentScript.Kind.HEAL:
 			await enemy_portrait.play_state(CombatantPortrait.State.HEAL)
 	if result.victory:
+		_play_sfx(&"victory")
 		await enemy_portrait.play_state(CombatantPortrait.State.DEFEAT, 0.32)
 	elif result.defeat:
+		_play_sfx(&"defeat")
 		await hero_portrait.play_state(CombatantPortrait.State.DEFEAT, 0.32)
 	_feedback_active = false
 	_feedback_tweens.clear()
@@ -409,7 +421,7 @@ func _show_weakness_feedback(hit_weakness: bool) -> void:
 	weakness_feedback_label.pivot_offset = weakness_feedback_label.size * 0.5
 	weakness_feedback_label.scale = Vector2(0.9, 0.9)
 	weakness_feedback_label.visible = true
-	weakness_sound.play()
+	_play_sfx(&"weakness")
 	var tween := _new_feedback_tween()
 	tween.tween_property(weakness_feedback_label, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.chain().tween_interval(0.42)
@@ -477,6 +489,14 @@ func _create_weakness_sound() -> AudioStreamWAV:
 	stream.mix_rate = sample_rate
 	stream.data = samples
 	return stream
+
+
+func _play_sfx(sound_name: StringName) -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service != null:
+		audio_service.play_sfx(sound_name)
+	elif sound_name == &"weakness":
+		weakness_sound.play()
 
 
 func _perform_enemy_action(battle: RefCounted) -> void:
@@ -635,6 +655,32 @@ func _toggle_pause() -> void:
 	board_view.reset_hint_timer()
 	get_tree().paused = paused
 	pause_overlay.visible = paused
+
+
+func _toggle_music() -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service == null:
+		return
+	audio_service.set_music_enabled(not audio_service.music_enabled)
+	_update_audio_buttons()
+
+
+func _toggle_sfx() -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service == null:
+		return
+	audio_service.set_sfx_enabled(not audio_service.sfx_enabled)
+	_update_audio_buttons()
+
+
+func _update_audio_buttons() -> void:
+	var audio_service := get_node_or_null("/root/AudioService")
+	if audio_service == null:
+		return
+	music_toggle_button.set_active(audio_service.music_enabled)
+	music_toggle_button.tooltip_text = tr("Выключить музыку") if audio_service.music_enabled else tr("Включить музыку")
+	sfx_toggle_button.set_active(audio_service.sfx_enabled)
+	sfx_toggle_button.tooltip_text = tr("Выключить звук") if audio_service.sfx_enabled else tr("Включить звук")
 
 
 func refresh_localized_text() -> void:
