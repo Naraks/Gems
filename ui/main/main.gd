@@ -29,7 +29,11 @@ const AUTO_CONTINUE_SECONDS := 0.65
 const VICTORY_HOLD_SECONDS := 1.20
 
 @export var rules: GameRules
-@export var tutorial_completed := true
+@export var tutorial_completed := true:
+	set(value):
+		tutorial_completed = value
+		if is_instance_valid(board_view):
+			board_view.set_hint_enabled(value)
 @export_range(1, 1000000, 1) var battle_number := 1
 @export var show_battle_heading := true
 @export var defer_enemy_arrival := false
@@ -147,6 +151,7 @@ func _ready() -> void:
 		enemy,
 	)
 	board_view.setup(_board)
+	board_view.set_hint_enabled(tutorial_completed)
 	board_view.swap_requested.connect(_on_swap_requested)
 	for index in upgrade_buttons.size():
 		upgrade_buttons[index].pressed.connect(_choose_upgrade.bind(index))
@@ -627,6 +632,7 @@ func _notify_defeat() -> void:
 
 func _toggle_pause() -> void:
 	var paused := not get_tree().paused
+	board_view.reset_hint_timer()
 	get_tree().paused = paused
 	pause_overlay.visible = paused
 

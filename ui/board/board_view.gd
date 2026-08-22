@@ -42,6 +42,8 @@ const MAX_FALL_SECONDS := 0.36
 const SETTLE_SECONDS := 0.11
 const CASCADE_PAUSE_SECONDS := 0.08
 const FAST_SPEED := 6.0
+const DEFAULT_HINT_DELAY_SECONDS := 5.0
+const HINT_COLOR := Color("#fff2a8")
 
 var _board: RefCounted
 var _input_controller: RefCounted
@@ -60,10 +62,18 @@ var _animation_progress := 0.0:
 	set(value):
 		_animation_progress = value
 		queue_redraw()
+var hint_delay_seconds := DEFAULT_HINT_DELAY_SECONDS
+var hint_visible := false
+var hinted_cells: Array[Vector2i] = []
+var _hint_enabled := true
+var _hint_elapsed := 0.0
+var _hint_cycle := 0
+var _hint_pulse := 0.0
 
 
 func _ready() -> void:
 	mouse_exited.connect(_clear_hover)
+	set_process(true)
 
 
 func setup(board: RefCounted) -> void:
@@ -72,6 +82,7 @@ func setup(board: RefCounted) -> void:
 	_input_controller = BoardInputControllerScript.new(board.size)
 	_input_controller.swap_requested.connect(_on_swap_requested)
 	_input_controller.selection_changed.connect(_on_selection_changed)
+	reset_hint_timer()
 	queue_redraw()
 
 
@@ -80,7 +91,67 @@ func set_input_enabled(enabled: bool) -> void:
 		_input_controller.set_input_enabled(enabled)
 	if not enabled:
 		clear_transient_state()
+	else:
+		reset_hint_timer()
 	mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+
+
+func set_hint_enabled(enabled: bool) -> void:
+	_hint_enabled = enabled
+	reset_hint_timer()
+
+
+func reset_hint_timer() -> void:
+	_hint_elapsed = 0.0
+	hide_move_hint()
+
+
+func hide_move_hint() -> void:
+	if not hint_visible and hinted_cells.is_empty():
+		return
+	hint_visible = false
+	hinted_cells.clear()
+	queue_redraw()
+
+
+func notify_player_interaction() -> void:
+	reset_hint_timer()
+
+
+func _process(delta: float) -> void:
+	if not _can_show_hint():
+		reset_hint_timer()
+		return
+	_hint_elapsed += delta
+	if hint_visible:
+		_hint_pulse += delta
+		queue_redraw()
+	elif _hint_elapsed >= hint_delay_seconds:
+		_show_move_hint()
+
+
+func _can_show_hint() -> bool:
+	return (
+		_hint_enabled
+		and _board != null
+		and _input_controller != null
+		and _input_controller.input_enabled
+		and not animation_active
+		and not get_tree().paused
+		and not _board.has_any_match()
+	)
+
+
+func _show_move_hint() -> void:
+	var moves: Array = _board.find_valid_moves()
+	if moves.is_empty():
+		return
+	var move: RefCounted = moves[_hint_cycle % moves.size()]
+	_hint_cycle += 1
+	hinted_cells.assign([move.first, move.second])
+	hint_visible = true
+	_hint_pulse = 0.0
+	queue_redraw()
 
 
 func refresh() -> void:
@@ -88,6 +159,7 @@ func refresh() -> void:
 
 
 func play_resolution(resolution: RefCounted) -> void:
+	reset_hint_timer()
 	if resolution == null or resolution.steps.is_empty():
 		return
 	animation_active = true
@@ -119,6 +191,7 @@ func play_resolution(resolution: RefCounted) -> void:
 
 
 func play_swap(first: Vector2i, second: Vector2i, before_cells: PackedInt32Array) -> void:
+	reset_hint_timer()
 	animation_active = true
 	_animation_speed = 1.0
 	_animation_cells = before_cells.duplicate()
@@ -138,6 +211,7 @@ func play_swap(first: Vector2i, second: Vector2i, before_cells: PackedInt32Array
 
 
 func play_invalid_swap_return(first: Vector2i, second: Vector2i, swapped_cells: PackedInt32Array) -> void:
+	reset_hint_timer()
 	animation_active = true
 	_animation_speed = 1.0
 	_animation_cells = swapped_cells.duplicate()
@@ -201,12 +275,16 @@ func _gui_input(event: InputEvent) -> void:
 	if _input_controller == null or not _input_controller.input_enabled:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		notify_player_interaction()
 		_handle_pointer(event.position, event.pressed)
 		accept_event()
 	elif event is InputEventScreenTouch:
+		notify_player_interaction()
 		_handle_pointer(event.position, event.pressed)
 		accept_event()
 	elif event is InputEventMouseMotion:
+		if event.button_mask & MOUSE_BUTTON_MASK_LEFT:
+			notify_player_interaction()
 		var hovered := cell_at(event.position)
 		if hovered != _hovered_position:
 			_hovered_position = hovered
@@ -244,6 +322,26 @@ func _draw_idle_board(cell_size: Vector2) -> void:
 			if _input_controller.selected_position == position:
 				draw_rect(rect.grow(2.0), Color("#fff1a8"), false, 3.0)
 				draw_rect(rect.grow(-2.0), Color("#fff1a8"), false, 2.0)
+			if hint_visible and position in hinted_cells:
+				var pulse := 0.72 + sin(_hint_pulse * TAU * 1.5) * 0.20
+				draw_rect(rect.grow(2.0), Color(HINT_COLOR, pulse), false, 3.0)
+				draw_rect(rect.grow(-3.0), Color(HINT_COLOR, pulse * 0.65), false, 2.0)
+	if hint_visible and hinted_cells.size() == 2:
+		_draw_hint_direction(cell_size)
+
+
+func _draw_hint_direction(cell_size: Vector2) -> void:
+	var board_rect := _board_rect()
+	var first_center := board_rect.position + (Vector2(hinted_cells[0]) + Vector2.ONE * 0.5) * cell_size
+	var second_center := board_rect.position + (Vector2(hinted_cells[1]) + Vector2.ONE * 0.5) * cell_size
+	var direction := first_center.direction_to(second_center)
+	var inset := minf(cell_size.x, cell_size.y) * 0.24
+	var start := first_center + direction * inset
+	var end := second_center - direction * inset
+	var color := Color(HINT_COLOR, 0.62 + sin(_hint_pulse * TAU * 1.5) * 0.16)
+	draw_line(start, end, color, 3.0)
+	var side := direction.orthogonal() * 5.0
+	draw_colored_polygon(PackedVector2Array([end, end - direction * 8.0 + side, end - direction * 8.0 - side]), color)
 
 
 func _draw_animated_board(cell_size: Vector2) -> void:
@@ -419,6 +517,7 @@ func _draw_hover_tooltip(board_rect: Rect2) -> void:
 
 func clear_transient_state() -> void:
 	_clear_hover()
+	hide_move_hint()
 	tooltip_text = ""
 
 
@@ -436,8 +535,10 @@ func _board_rect() -> Rect2:
 
 
 func _on_swap_requested(first: Vector2i, second: Vector2i) -> void:
+	notify_player_interaction()
 	swap_requested.emit(first, second)
 
 
 func _on_selection_changed(_position: Vector2i) -> void:
+	notify_player_interaction()
 	queue_redraw()
