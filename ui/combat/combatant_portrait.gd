@@ -34,7 +34,9 @@ const BOSS_TEXTURES := {
 	&"void_archmage": preload("res://assets/characters/void_archmage.png"),
 }
 const STATE_NAMES := [&"idle", &"sword", &"magic", &"attack", &"special", &"hurt", &"heal", &"prepare", &"defeat"]
+const ART_SIZE := Vector2i(96, 128)
 const ART_SCALE := 2.0
+const MAX_VFX_DURATION := 0.5
 
 @export var role := Role.HERO
 @export var primary_color := Color("4e78d0")
@@ -89,6 +91,7 @@ func _regular_texture(enemy_id: StringName) -> Texture2D:
 
 
 func play_state(state: State, duration := 0.18) -> void:
+	assert(supports_state(state), "%s does not support the %s animation" % [name, STATE_NAMES[state]])
 	if _state_tween != null and _state_tween.is_valid():
 		_state_tween.kill()
 	current_state = state
@@ -123,6 +126,10 @@ func vfx_color() -> Color:
 		&"fire_golem": return Color("ff6a2d")
 		&"void_archmage": return Color("9b67ff")
 	return Color("78c6ff") if role == Role.HERO else primary_color.lightened(0.25)
+
+
+func has_unique_boss_vfx() -> bool:
+	return is_boss and definition_id in BOSS_TEXTURES
 
 
 func _process(delta: float) -> void:
