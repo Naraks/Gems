@@ -32,7 +32,10 @@ func _run() -> void:
 	failed = _check(bosses == [10, 20, 30, 40, 50, 60], "Every tenth battle remains a boss at endless depth") or failed
 	for count in shops_by_block.values():
 		failed = _check(int(count) <= 2, "Every endless block keeps the two-shop limit") or failed
-	failed = _check("Заросшие руины" in state.node_title() and "Цикл 3" in state.node_title(), "Large-depth title keeps biome and cycle numbering") or failed
+	var deep_title: String = state.node_title()
+	var expected_biome: String = EndlessCycleScript.biome_name(state.battle_number)
+	var expected_cycle: String = (tr(" · Цикл %d") % EndlessCycleScript.cycle_number(state.battle_number)).strip_edges()
+	failed = _check(expected_biome in deep_title and expected_cycle in deep_title, "Large-depth title keeps biome and cycle numbering") or failed
 
 	failed = _check(EndlessCycleScript.biome_id(1) == &"ruins" and EndlessCycleScript.biome_id(31) == &"ruins" and EndlessCycleScript.biome_id(51) == &"tower", "Biome sequence repeats cyclically") or failed
 	failed = _check(EndlessCycleScript.blocker_limit_bonus(31) == 1 and EndlessCycleScript.blocker_limit_bonus(1000000) == EndlessCycleScript.MAX_BLOCKER_BONUS, "Endless modifier grows and remains capped at large depth") or failed
