@@ -32,6 +32,12 @@ func _init() -> void:
 	var result = resolver.resolve(board)
 	failed = _check(result.stable, "Cascades resolve to a stable board") or failed
 	failed = _check(result.steps.size() == 2, "New matches trigger another cascade") or failed
+	failed = _check(
+		result.steps[0].before_cells.size() == board.cell_count()
+		and -1 in result.steps[0].cleared_cells
+		and result.steps[0].movements.size() + result.steps[0].spawns.size() == board.cell_count(),
+		"Cascade step records snapshots, falling tiles and refills for animation",
+	) or failed
 	failed = _check(result.total_removed == 6, "Both cascade matches are removed") or failed
 	failed = _check(not board.has_any_match(), "Stable board has no remaining matches") or failed
 	failed = _check(result.steps[0].multiplier == 1.0 and result.steps[1].multiplier == 1.25, "Cascade multipliers start at x1.00 and x1.25") or failed

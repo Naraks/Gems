@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/run/first_biome_run.gd" id="1_run"]
+[ext_resource type="Theme" path="res://ui/theme/pixel_theme.tres" id="2_theme"]
+[ext_resource type="Script" path="res://ui/run/pixel_journey_stage.gd" id="3_journey_stage"]
+[ext_resource type="Script" path="res://ui/run/pixel_journey_marker.gd" id="4_journey_marker"]
 
 [node name="FirstBiomeRun" type="Control"]
 layout_mode = 3
@@ -10,6 +13,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_run")
+theme = ExtResource("2_theme")
 
 [node name="RuinsBackground" type="ColorRect" parent="."]
 layout_mode = 1
@@ -42,33 +46,20 @@ text = "Заросшие руины · Бой 1/10"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LanguageSelector" type="OptionButton" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 44)
-layout_mode = 1
-offset_left = 4.0
-offset_top = 2.0
-offset_right = 116.0
-offset_bottom = 46.0
-item_count = 2
-selected = 0
-popup/item_0/text = "Русский"
-popup/item_0/id = 0
-popup/item_1/text = "English"
-popup/item_1/id = 1
-
 [node name="JourneyStage" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchor_top = 0.066
 anchor_right = 1.0
-anchor_bottom = 0.25
+anchor_bottom = 0.3
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 clip_contents = true
+script = ExtResource("3_journey_stage")
 
 [node name="Sky" type="ColorRect" parent="JourneyStage"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -79,6 +70,7 @@ color = Color(0.105, 0.22, 0.145, 1)
 
 [node name="DistantRuins" type="Label" parent="JourneyStage"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -92,6 +84,7 @@ horizontal_alignment = 1
 vertical_alignment = 2
 
 [node name="Road" type="ColorRect" parent="JourneyStage"]
+visible = false
 layout_mode = 1
 anchor_top = 0.58
 anchor_right = 1.0
@@ -101,6 +94,7 @@ grow_vertical = 0
 color = Color(0.18, 0.16, 0.105, 1)
 
 [node name="RoadLine" type="ColorRect" parent="JourneyStage"]
+visible = false
 layout_mode = 1
 anchor_left = 0.04
 anchor_top = 0.84
@@ -110,6 +104,7 @@ color = Color(0.48, 0.43, 0.24, 0.7)
 
 [node name="RoadMarks" type="Label" parent="JourneyStage"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1
 anchor_top = 0.69
 anchor_right = 1.0
@@ -126,14 +121,18 @@ vertical_alignment = 1
 unique_name_in_owner = true
 layout_mode = 1
 anchor_left = 0.22
-anchor_top = 0.46
+anchor_top = 0.5
 anchor_right = 0.22
-anchor_bottom = 0.96
-offset_left = -34.0
-offset_right = 34.0
+anchor_bottom = 0.5
+offset_left = -48.0
+offset_top = -46.0
+offset_right = 48.0
+offset_bottom = 46.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.18, 0.36, 0.72, 1)
+color = Color(0.075, 0.14, 0.22, 0.96)
+script = ExtResource("4_journey_marker")
+border_color = Color(0.39, 0.55, 0.86, 1)
 
 [node name="Label" type="Label" parent="JourneyStage/JourneyHero"]
 layout_mode = 1
@@ -150,15 +149,30 @@ vertical_alignment = 1
 [node name="EncounterAvatar" type="ColorRect" parent="JourneyStage"]
 unique_name_in_owner = true
 layout_mode = 1
-anchor_left = 0.72
-anchor_top = 0.42
-anchor_right = 0.72
-anchor_bottom = 0.96
-offset_left = -76.0
-offset_right = 76.0
+anchor_left = 0.78
+anchor_top = 0.5
+anchor_right = 0.78
+anchor_bottom = 0.5
+offset_left = -74.0
+offset_top = -46.0
+offset_right = 74.0
+offset_bottom = 46.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.52, 0.17, 0.14, 1)
+color = Color(0.18, 0.16, 0.1, 0.96)
+script = ExtResource("4_journey_marker")
+border_color = Color(0.72, 0.59, 0.28, 1)
+
+[node name="JourneyStatusBacking" type="ColorRect" parent="JourneyStage"]
+layout_mode = 1
+anchor_left = 0.25
+anchor_top = 0.03
+anchor_right = 0.75
+anchor_bottom = 0.36
+mouse_filter = 2
+color = Color(0.025, 0.07, 0.05, 0.92)
+script = ExtResource("4_journey_marker")
+border_color = Color(0.48, 0.67, 0.36, 1)
 
 [node name="EncounterLabel" type="Label" parent="JourneyStage/EncounterAvatar"]
 unique_name_in_owner = true
@@ -177,12 +191,12 @@ autowrap_mode = 2
 [node name="JourneyStatus" type="Label" parent="JourneyStage"]
 unique_name_in_owner = true
 layout_mode = 1
-anchor_left = 0.3
-anchor_top = 0.04
-anchor_right = 0.7
-anchor_bottom = 0.28
+anchor_left = 0.27
+anchor_top = 0.05
+anchor_right = 0.73
+anchor_bottom = 0.34
 theme_override_colors/font_color = Color(0.86, 0.91, 0.68, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "В пути..."
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -190,7 +204,7 @@ vertical_alignment = 1
 [node name="RunContent" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
-anchor_top = 0.25
+anchor_top = 0.3
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -329,6 +343,18 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Каждый новый путь начинается без накопленного прогресса"
 horizontal_alignment = 1
+
+[node name="LanguageSelector" type="OptionButton" parent="RunMenuPanel/MenuLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+item_count = 2
+selected = 0
+popup/item_0/text = "Русский"
+popup/item_0/id = 0
+popup/item_1/text = "English"
+popup/item_1/id = 1
 
 [node name="NewRunButton" type="Button" parent="RunMenuPanel/MenuLayout"]
 unique_name_in_owner = true

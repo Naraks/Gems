@@ -34,6 +34,8 @@ var travel_progress := 0.0:
 		queue_redraw()
 var _elapsed := 0.0
 var _palette_hue_shift := 0.0
+var _travel_tween: Tween
+var _travel_speed := 1.0
 
 
 func _ready() -> void:
@@ -59,7 +61,7 @@ func biome_name() -> String:
 	return tr(BIOME_NAMES[biome_id])
 
 
-func panel_color(alpha := 0.9) -> Color:
+func panel_color(alpha := 0.62) -> Color:
 	return _shifted_color(PANEL_COLORS[biome_id], alpha)
 
 
@@ -71,11 +73,19 @@ func background_texture() -> Texture2D:
 	return BIOME_TEXTURES[biome_id]
 
 
-func play_travel(duration := 0.7) -> void:
+func play_travel(duration := 0.7, speed := 1.0) -> void:
 	travel_progress = 0.0
-	var tween := create_tween()
-	tween.tween_property(self, "travel_progress", 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	await tween.finished
+	_travel_speed = speed
+	_travel_tween = create_tween()
+	_travel_tween.set_speed_scale(_travel_speed)
+	_travel_tween.tween_property(self, "travel_progress", 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await _travel_tween.finished
+
+
+func set_travel_speed(speed: float) -> void:
+	_travel_speed = maxf(1.0, speed)
+	if _travel_tween != null and _travel_tween.is_valid():
+		_travel_tween.set_speed_scale(_travel_speed)
 
 
 func _process(delta: float) -> void:
@@ -100,11 +110,11 @@ func _draw() -> void:
 	var base_position := (size - drawn_size) * 0.5 + parallax_offset
 	var travel_offset := -travel_progress * minf(size.x * 0.42, drawn_size.x * 0.42)
 	var destination := Rect2(base_position + Vector2(travel_offset, 0.0), drawn_size)
-	var texture_tint := _shifted_color(Color(0.72, 0.72, 0.72, 1.0))
+	var texture_tint := _shifted_color(Color(0.88, 0.88, 0.88, 1.0))
 	draw_texture_rect(texture, destination, false, texture_tint)
 	if destination.end.x < size.x:
 		draw_texture_rect(texture, Rect2(destination.position + Vector2(drawn_size.x, 0.0), drawn_size), false, texture_tint)
-	draw_rect(Rect2(Vector2.ZERO, size), panel_color(0.28), true)
+	draw_rect(Rect2(Vector2.ZERO, size), panel_color(0.14), true)
 
 
 func _shifted_color(color: Color, alpha := -1.0) -> Color:

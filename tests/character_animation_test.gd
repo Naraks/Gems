@@ -15,6 +15,7 @@ func _run() -> void:
 	await process_frame
 
 	portrait.setup(PortraitScript.Role.HERO, Color("4e78d0"), "⚔")
+	failed = _check(portrait.ART_SCALE == 2.0, "Combatant artwork is rendered at double scale") or failed
 	for state in [PortraitScript.State.IDLE, PortraitScript.State.SWORD, PortraitScript.State.MAGIC, PortraitScript.State.HURT, PortraitScript.State.HEAL, PortraitScript.State.DEFEAT]:
 		failed = _check(portrait.supports_state(state), "Hero supports state %s" % PortraitScript.STATE_NAMES[state]) or failed
 	await portrait.play_state(PortraitScript.State.SWORD, 0.01)
@@ -37,8 +38,25 @@ func _run() -> void:
 		await portrait.play_state(PortraitScript.State.SPECIAL, 0.01)
 	failed = _check(boss_textures[0] != boss_textures[1] and boss_textures[1] != boss_textures[2], "Bosses use unique art") or failed
 	failed = _check(boss_colors[0] != boss_colors[1] and boss_colors[1] != boss_colors[2], "Bosses use unique VFX palettes") or failed
+	for biome in ["ruins", "mines", "tower"]:
+		var regular_textures: Array[Texture2D] = []
+		for archetype in ["fighter", "healer", "berserker"]:
+			portrait.setup(PortraitScript.Role.ENEMY, Color.WHITE, "?", StringName("%s_%s" % [biome, archetype]), false)
+			regular_textures.append(portrait._texture)
+		failed = _check(
+			regular_textures[0] != regular_textures[1]
+			and regular_textures[1] != regular_textures[2]
+			and regular_textures[0] != regular_textures[2],
+			"%s biome has three unique regular enemy portraits" % biome,
+		) or failed
 
-	for path in ["res://assets/characters/hero.png", "res://assets/characters/ordinary_enemy.png", "res://assets/characters/stone_guardian.png", "res://assets/characters/fire_golem.png", "res://assets/characters/void_archmage.png"]:
+	for path in [
+		"res://assets/characters/hero.png", "res://assets/characters/ordinary_enemy.png",
+		"res://assets/characters/ruins_root_fighter.png", "res://assets/characters/ruins_moss_shaman.png", "res://assets/characters/ruins_vine_brute.png",
+		"res://assets/characters/mines_ash_raider.png", "res://assets/characters/mines_ember_shaman.png", "res://assets/characters/mines_crystal_brute.png",
+		"res://assets/characters/tower_silent_duelist.png", "res://assets/characters/tower_arcane_cultist.png", "res://assets/characters/tower_spectral_sentinel.png",
+		"res://assets/characters/stone_guardian.png", "res://assets/characters/fire_golem.png", "res://assets/characters/void_archmage.png",
+	]:
 		var texture := load(path) as Texture2D
 		failed = _check(texture != null and texture.get_size() == Vector2(96, 128), "%s is a normalized character sheet" % path) or failed
 

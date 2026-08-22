@@ -29,6 +29,9 @@ var run_state: RefCounted
 var current_screen: Node
 var is_travelling := false
 var _journey_tween: Tween
+var _collapse_tween: Tween
+var _encounter_intro_active := false
+var _journey_speed := 1.0
 @export var localization_settings_path := LocalizationServiceScript.SETTINGS_PATH
 
 
@@ -75,10 +78,13 @@ func _show_current_node() -> void:
 		RunStateScript.NodeKind.BATTLE, RunStateScript.NodeKind.BOSS:
 			var battle = BATTLE_SCENE.instantiate()
 			battle.battle_number = run_state.battle_number
+			battle.show_battle_heading = false
+			battle.defer_enemy_arrival = true
 			battle.run_hero = run_state.hero
 			battle.battle_completed.connect(_on_battle_completed)
 			battle.battle_defeated.connect(_on_battle_defeated)
 			content.add_child(battle)
+			battle.board_view.set_input_enabled(false)
 			current_screen = battle
 			var definition: Resource = battle._battle.enemy.definition
 			var kind_text := "БОСС" if run_state.current_kind == RunStateScript.NodeKind.BOSS else "ВРАГ"
@@ -127,33 +133,85 @@ func _start_new_run() -> void:
 
 
 func _show_encounter(kind_text: String, is_merchant: bool, definition: Resource = null) -> void:
+	_encounter_intro_active = true
+	_journey_speed = 1.0
+	journey_stage.visible = true
+	journey_stage.anchor_bottom = 0.30
+	content.anchor_top = 0.30
+	content.modulate.a = 0.32
 	encounter_avatar.visible = true
-	encounter_avatar.color = Color("8b692f") if is_merchant else definition.visual_color
+	encounter_avatar.color = Color("251f12") if is_merchant else Color(definition.visual_color.darkened(0.72), 0.96)
+	encounter_avatar.border_color = Color("c5a24d") if is_merchant else definition.visual_color.lightened(0.28)
 	var symbol: String = "☰" if is_merchant else definition.visual_symbol
 	var localized_kind := tr(kind_text)
 	var title: String = localized_kind if is_merchant else "%s · %s" % [localized_kind, tr(definition.display_name).to_upper()]
 	encounter_label.text = "%s\n%s" % [symbol, title]
-	_play_travel_animation(tr("Встреча: %s") % localized_kind.to_lower())
+	var arrival_text := tr("Встреча с торговцем") if is_merchant else tr("Встреча с боссом") if kind_text == "БОСС" else tr("Встреча с врагом")
+	_play_travel_animation(arrival_text)
 
 
 func _play_travel_animation(arrival_text: String) -> void:
 	if _journey_tween != null and _journey_tween.is_valid():
 		_journey_tween.kill()
 	is_travelling = true
-	journey_status.text = tr("Герой идёт дальше...")
+	journey_status.text = "%s\n%s" % [tr("Герой идёт дальше..."), arrival_text.to_upper()]
 	distant_ruins.position.x = 0.0
 	road_marks.position.x = 0.0
 	encounter_avatar.position.x = journey_stage.size.x + 20.0
 	encounter_avatar.modulate.a = 0.0
 	_journey_tween = create_tween().set_parallel(true)
-	_journey_tween.tween_property(distant_ruins, "position:x", -70.0, 0.45).set_trans(Tween.TRANS_LINEAR)
-	_journey_tween.tween_property(road_marks, "position:x", -120.0, 0.45).set_trans(Tween.TRANS_LINEAR)
-	_journey_tween.tween_property(encounter_avatar, "position:x", journey_stage.size.x * 0.72 - encounter_avatar.size.x * 0.5, 0.35).set_delay(0.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_journey_tween.tween_property(encounter_avatar, "modulate:a", 1.0, 0.25).set_delay(0.10)
+	_journey_tween.set_speed_scale(_journey_speed)
+	_journey_tween.tween_property(distant_ruins, "position:x", -90.0, 0.65).set_trans(Tween.TRANS_LINEAR)
+	_journey_tween.tween_property(road_marks, "position:x", -150.0, 0.65).set_trans(Tween.TRANS_LINEAR)
+	_journey_tween.tween_property(encounter_avatar, "position:x", journey_stage.size.x * 0.72 - encounter_avatar.size.x * 0.5, 0.50).set_delay(0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_journey_tween.tween_property(encounter_avatar, "modulate:a", 1.0, 0.34).set_delay(0.12)
+	_journey_tween.chain().tween_callback(func() -> void:
+		journey_status.text = arrival_text.to_upper()
+	)
+	_journey_tween.chain().tween_interval(1.10)
 	_journey_tween.chain().tween_callback(func() -> void:
 		is_travelling = false
-		journey_status.text = arrival_text
+		_collapse_encounter_stage()
 	)
+
+
+func _collapse_encounter_stage() -> void:
+	_collapse_tween = create_tween().set_parallel(true)
+	_collapse_tween.set_speed_scale(_journey_speed)
+	_collapse_tween.tween_property(journey_stage, "anchor_bottom", 0.066, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_collapse_tween.tween_property(content, "anchor_top", 0.05, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_collapse_tween.tween_property(content, "modulate:a", 1.0, 0.35)
+	_collapse_tween.chain().tween_callback(func() -> void:
+		journey_stage.visible = false
+		_finish_encounter_intro()
+	)
+
+
+func _finish_encounter_intro() -> void:
+	var intro_screen := current_screen
+	if intro_screen != null and intro_screen.has_method("play_enemy_arrival"):
+		await intro_screen.play_enemy_arrival()
+		if is_instance_valid(intro_screen) and current_screen == intro_screen and not intro_screen._battle.is_over:
+			intro_screen.board_view.set_input_enabled(true)
+	_encounter_intro_active = false
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _encounter_intro_active:
+		return
+	var pressed: bool = (
+		event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+	) or (event is InputEventScreenTouch and event.pressed)
+	if not pressed:
+		return
+	_journey_speed = 6.0
+	if _journey_tween != null and _journey_tween.is_valid():
+		_journey_tween.set_speed_scale(_journey_speed)
+	if _collapse_tween != null and _collapse_tween.is_valid():
+		_collapse_tween.set_speed_scale(_journey_speed)
+	if current_screen != null and current_screen.has_method("accelerate_transition"):
+		current_screen.accelerate_transition()
+	get_viewport().set_input_as_handled()
 
 
 func _on_language_selected(index: int) -> void:

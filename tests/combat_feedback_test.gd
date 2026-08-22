@@ -24,16 +24,19 @@ func _run() -> void:
 	result.enemy_intent = main._battle.enemy.current_intent
 	await main._play_combat_feedback(result, 2)
 	failed = _check(
-		main.feedback_events == PackedStringArray(["board", "enemy_damage", "hero_heal", "coins", "weakness", "intent", "enemy_attack"]),
+		main.feedback_events == PackedStringArray(["enemy_damage", "weakness", "hero_heal", "coins", "intent", "enemy_attack"]),
 		"Feedback follows player effects, weakness, intent and enemy response order",
 	) or failed
 	failed = _check(main.get_node("%WeaknessSound").stream != null, "Weakness has a dedicated sound") or failed
-	failed = _check(not main.get_node("%WeaknessFlash").visible and not main.get_node("%WeaknessFeedbackLabel").visible, "Weakness flash and caption complete cleanly") or failed
+	failed = _check(main.get_node_or_null("%WeaknessFlash") == null and not main.get_node("%WeaknessFeedbackLabel").visible, "Weakness caption completes without a blocking background") or failed
+	var hero_center_x: float = main.get_node("%HeroPortrait").get_global_rect().get_center().x
+	var enemy_center_x: float = main.get_node("%EnemyPortrait").get_global_rect().get_center().x
 	failed = _check(
-		main.get_node("%HeroFeedbackLabel").anchor_left < 0.5
-		and main.get_node("%EnemyFeedbackLabel").anchor_left > 0.5
-		and main.get_node("%CoinFeedbackLabel").anchor_left < 0.5,
-		"Damage, healing and coins are anchored to their own HUD targets",
+		absf(main.get_node("%HeroFeedbackLabel").get_global_rect().get_center().x - hero_center_x) <= 2.0
+		and absf(main.get_node("%CoinFeedbackLabel").get_global_rect().get_center().x - hero_center_x) <= 2.0
+		and absf(main.get_node("%EnemyFeedbackLabel").get_global_rect().get_center().x - enemy_center_x) <= 2.0
+		and absf(main.get_node("%WeaknessFeedbackLabel").get_global_rect().get_center().x - enemy_center_x) <= 2.0,
+		"Damage, weakness, healing and coins are aligned to their own combatants",
 	) or failed
 
 	var speed_tween: Tween = main.create_tween()
@@ -46,7 +49,12 @@ func _run() -> void:
 	failed = _check(main.feedback_events.size() == events_before_skip, "Animation skip is locked during tutorial") or failed
 	main.tutorial_completed = true
 	main.accelerate_feedback()
-	failed = _check(main.feedback_events[-1] == "accelerated", "Touch acceleration is enabled after tutorial") or failed
+	failed = _check(
+		main.feedback_events[-1] == "accelerated"
+		and main.hero_portrait._animation_speed == main.SKIP_SPEED
+		and main.enemy_portrait._animation_speed == main.SKIP_SPEED,
+		"Touch acceleration includes feedback and character animation",
+	) or failed
 	speed_tween.kill()
 
 	main.queue_free()

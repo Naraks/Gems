@@ -25,11 +25,11 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	failed = _check("Battle 20" in main.battle_number_label.text and "Ashen Mines" in main.battle_number_label.text, "Battle heading is localized in English") or failed
-	failed = _check("Fire Golem" in main.enemy_title_label.text and "Intent:" in main.enemy_intent_label.text, "Enemy data and combat hints are localized in English") or failed
+	failed = _check("Fire Golem" in main.enemy_title_label.text and "Next turn:" in main.enemy_intent_label.text, "Enemy data and combat hints are localized in English") or failed
 	root.size = Vector2i(640, 360)
 	await process_frame
 	await process_frame
-	failed = _check(main.battle_number_label.size.x > 0.0 and main.enemy_intent_label.size.x > 0.0 and main.get_node("%PauseButton").size.y >= 44.0, "English combat HUD remains readable at 640x360") or failed
+	failed = _check(main.battle_number_label.size.x > 0.0 and main.enemy_intent_label.size.x > 0.0, "English combat HUD remains readable at 640x360") or failed
 	main.queue_free()
 	await process_frame
 
@@ -49,7 +49,7 @@ func _run() -> void:
 	root.add_child(run)
 	await process_frame
 	failed = _check(run.language_selector.selected == 1 and "Overgrown Ruins" in run.node_title_label.text, "Saved language is applied to the run screen") or failed
-	failed = _check(run.language_selector.size.y >= 44.0, "Language selector remains a valid touch target") or failed
+	failed = _check(run.language_selector.size.y >= 44.0 and run.language_selector.get_parent().name == "MenuLayout", "Language selector is a valid touch target inside the run menu") or failed
 	run._on_language_selected(0)
 	await process_frame
 	failed = _check(LocalizationServiceScript.load_saved_locale(SETTINGS_PATH) == "ru" and "Заросшие руины" in run.node_title_label.text, "Language can switch to Russian without restarting the battle") or failed

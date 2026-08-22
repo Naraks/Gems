@@ -1,10 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://ui/main/main.gd" id="1_main"]
 [ext_resource type="Resource" path="res://data/game_rules.tres" id="2_rules"]
 [ext_resource type="Script" path="res://ui/board/board_view.gd" id="3_board_view"]
 [ext_resource type="Script" path="res://ui/background/biome_background.gd" id="4_biome_background"]
 [ext_resource type="Script" path="res://ui/combat/combatant_portrait.gd" id="5_combatant_portrait"]
+[ext_resource type="Theme" path="res://ui/theme/pixel_theme.tres" id="6_theme"]
+[ext_resource type="Script" path="res://ui/combat/enemy_intent_icon.gd" id="7_intent_icon"]
+[ext_resource type="Script" path="res://ui/combat/pixel_battle_transition.gd" id="8_pixel_transition"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -15,6 +18,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 rules = ExtResource("2_rules")
+theme = ExtResource("6_theme")
 
 [node name="BiomeBackground" type="Control" parent="."]
 unique_name_in_owner = true
@@ -42,7 +46,7 @@ theme_override_constants/separation = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 71.0
+size_flags_stretch_ratio = 74.0
 
 [node name="BoardLayout" type="VBoxContainer" parent="Layout/BoardArea"]
 layout_mode = 2
@@ -76,13 +80,6 @@ horizontal_alignment = 2
 vertical_alignment = 1
 text_overrun_behavior = 3
 
-[node name="PauseButton" type="Button" parent="Layout/BoardArea/BoardLayout/TopBar/TopBarContent"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 44)
-layout_mode = 2
-process_mode = 3
-text = "Пауза"
-
 [node name="BoardCenter" type="AspectRatioContainer" parent="Layout/BoardArea/BoardLayout"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -98,14 +95,15 @@ script = ExtResource("3_board_view")
 
 [node name="TurnResultArea" type="PanelContainer" parent="Layout"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 7.0
+size_flags_stretch_ratio = 6.0
 
 [node name="TurnResultLabel" type="Label" parent="Layout/TurnResultArea"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Сделайте комбинацию из трёх камней"
+text = "Соберите 3 камня в ряд"
 horizontal_alignment = 1
 vertical_alignment = 1
 text_overrun_behavior = 3
@@ -114,7 +112,7 @@ text_overrun_behavior = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 22.0
+size_flags_stretch_ratio = 20.0
 
 [node name="CombatMargin" type="MarginContainer" parent="Layout/CombatArea"]
 layout_mode = 2
@@ -130,7 +128,7 @@ theme_override_constants/separation = 24
 
 [node name="HeroPortrait" type="Control" parent="Layout/CombatArea/CombatMargin/Fighters"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 96)
+custom_minimum_size = Vector2(210, 280)
 layout_mode = 2
 mouse_filter = 2
 texture_filter = 1
@@ -140,9 +138,10 @@ symbol = "⚔"
 [node name="HeroPanel" type="VBoxContainer" parent="Layout/CombatArea/CombatMargin/Fighters"]
 layout_mode = 2
 size_flags_horizontal = 3
-alignment = 1
+alignment = 0
 
 [node name="HeroTitleLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/HeroPanel"]
+visible = false
 layout_mode = 2
 text = "ГЕРОЙ"
 horizontal_alignment = 1
@@ -170,7 +169,7 @@ layout_mode = 2
 
 [node name="EnemyPortrait" type="Control" parent="Layout/CombatArea/CombatMargin/Fighters"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 96)
+custom_minimum_size = Vector2(210, 280)
 layout_mode = 2
 mouse_filter = 2
 texture_filter = 1
@@ -179,16 +178,32 @@ role = 1
 primary_color = Color(0.52, 0.17, 0.14, 1)
 symbol = "?"
 
+[node name="EnemyIntentIcon" type="Control" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPortrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -32.0
+offset_top = -112.0
+offset_right = 32.0
+offset_bottom = -48.0
+grow_horizontal = 2
+z_index = 5
+script = ExtResource("7_intent_icon")
+
 [node name="EnemyPanel" type="VBoxContainer" parent="Layout/CombatArea/CombatMargin/Fighters"]
 layout_mode = 2
 size_flags_horizontal = 3
-alignment = 1
+alignment = 0
 
 [node name="EnemyTitleLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "ВРАГ"
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="EnemyHealthLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
 unique_name_in_owner = true
@@ -198,9 +213,11 @@ horizontal_alignment = 1
 
 [node name="EnemyIntentLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "Намерение: Атака 8"
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="WeaknessLabel" type="Label" parent="Layout/CombatArea/CombatMargin/Fighters/EnemyPanel"]
 unique_name_in_owner = true
@@ -235,28 +252,15 @@ grow_horizontal = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="WeaknessFlash" type="ColorRect" parent="FeedbackLayer"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchor_left = 0.5
-anchor_top = 0.68
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 0.78, 0.18, 0)
-
 [node name="EnemyFeedbackLabel" type="Label" parent="FeedbackLayer"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
 anchors_preset = 8
-anchor_left = 0.75
-anchor_top = 0.76
-anchor_right = 0.75
-anchor_bottom = 0.76
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
 offset_left = -100.0
 offset_top = -24.0
 offset_right = 100.0
@@ -306,15 +310,15 @@ vertical_alignment = 1
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchor_left = 0.75
-anchor_top = 0.91
-anchor_right = 0.75
-anchor_bottom = 0.91
-offset_left = -140.0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -220.0
 offset_top = -22.0
-offset_right = 140.0
+offset_right = 220.0
 offset_bottom = 22.0
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 16
 text = "СЛАБОСТЬ ×1.50"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -349,27 +353,76 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.035, 0.075, 0.055, 0.28)
+color = Color(0.035, 0.075, 0.055, 0.58)
+
+[node name="PixelWipe" type="Control" parent="BattleTransitionOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8_pixel_transition")
+
+[node name="TransitionBackdrop" type="ColorRect" parent="BattleTransitionOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.42
+anchor_right = 0.5
+anchor_bottom = 0.42
+offset_left = -260.0
+offset_top = -30.0
+offset_right = 260.0
+offset_bottom = 138.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.025, 0.06, 0.045, 0.92)
+
+[node name="TopBorder" type="ColorRect" parent="BattleTransitionOverlay/TransitionBackdrop"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 4.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.56, 0.74, 0.45, 1)
+
+[node name="BottomBorder" type="ColorRect" parent="BattleTransitionOverlay/TransitionBackdrop"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0.56, 0.74, 0.45, 1)
 
 [node name="TransitionLayout" type="VBoxContainer" parent="BattleTransitionOverlay"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 0.12
+anchor_top = 0.42
 anchor_right = 0.5
-anchor_bottom = 0.12
-offset_left = -230.0
+anchor_bottom = 0.42
+offset_left = -210.0
 offset_top = -10.0
-offset_right = 230.0
+offset_right = 210.0
 offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 18
 
 [node name="TransitionTitle" type="Label" parent="BattleTransitionOverlay/TransitionLayout"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "ПОБЕДА · ПУТЬ ПРОДОЛЖАЕТСЯ"
+theme_override_font_sizes/font_size = 20
+text = "ПОБЕДА\nПУТЬ ПРОДОЛЖАЕТСЯ"
 horizontal_alignment = 1
 
 [node name="BattleRewardLabel" type="Label" parent="BattleTransitionOverlay/TransitionLayout"]

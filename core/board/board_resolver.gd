@@ -34,15 +34,28 @@ func resolve(board: RefCounted) -> RefCounted:
 	var result = BoardResolutionResultScript.new()
 	_empty_stone_count = _count_empty_stones(board)
 	for cascade_index in range(1, MAX_CASCADE_STEPS + 1):
+		var before_cells: PackedInt32Array = board.cells()
 		var matches := _match_finder.find_matches(board, _rules.minimum_match_size)
 		if matches.is_empty():
 			return result
 		var cascade_multiplier := cascade_multiplier_for(cascade_index)
 		var effects = _effect_resolver.evaluate(board, matches, cascade_multiplier, _rules)
 		var removed_cells := _remove_effect_cells(board, matches, effects)
+		var cleared_cells: PackedInt32Array = board.cells()
 		_empty_stone_count -= effects.cleared_empty_stones.size()
-		var spawned := _collapser.collapse_and_refill(board, _next_tile)
-		result.add_step(CascadeStepScript.new(cascade_index, matches, removed_cells, spawned, effects))
+		var collapse_plan: Dictionary = _collapser.collapse_and_refill_with_plan(board, _next_tile)
+		result.add_step(CascadeStepScript.new(
+			cascade_index,
+			matches,
+			removed_cells,
+			int(collapse_plan.spawned_tiles),
+			effects,
+			before_cells,
+			cleared_cells,
+			board.cells(),
+			collapse_plan.movements,
+			collapse_plan.spawns,
+		))
 	result.stable = false
 	push_error("Cascade resolution exceeded the safety limit")
 	return result

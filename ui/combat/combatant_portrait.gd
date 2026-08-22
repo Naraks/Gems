@@ -6,12 +6,35 @@ enum State { IDLE, SWORD, MAGIC, ATTACK, SPECIAL, HURT, HEAL, PREPARE, DEFEAT }
 
 const HERO_TEXTURE := preload("res://assets/characters/hero.png")
 const ENEMY_TEXTURE := preload("res://assets/characters/ordinary_enemy.png")
+const REGULAR_TEXTURES := {
+	&"ruins": [
+		preload("res://assets/characters/ruins_root_fighter.png"),
+		preload("res://assets/characters/ruins_moss_shaman.png"),
+		preload("res://assets/characters/ruins_vine_brute.png"),
+	],
+	&"mines": [
+		preload("res://assets/characters/mines_ash_raider.png"),
+		preload("res://assets/characters/mines_ember_shaman.png"),
+		preload("res://assets/characters/mines_crystal_brute.png"),
+	],
+	&"tower": [
+		preload("res://assets/characters/tower_silent_duelist.png"),
+		preload("res://assets/characters/tower_arcane_cultist.png"),
+		preload("res://assets/characters/tower_spectral_sentinel.png"),
+	],
+}
+const REGULAR_VARIANTS := {
+	"fighter": 0, "duelist": 0,
+	"healer": 1, "mender": 1, "curser": 1, "hexer": 1,
+	"berserker": 2, "shieldbearer": 2, "rager": 2, "warden": 2,
+}
 const BOSS_TEXTURES := {
 	&"stone_guardian": preload("res://assets/characters/stone_guardian.png"),
 	&"fire_golem": preload("res://assets/characters/fire_golem.png"),
 	&"void_archmage": preload("res://assets/characters/void_archmage.png"),
 }
 const STATE_NAMES := [&"idle", &"sword", &"magic", &"attack", &"special", &"hurt", &"heal", &"prepare", &"defeat"]
+const ART_SCALE := 2.0
 
 @export var role := Role.HERO
 @export var primary_color := Color("4e78d0")
@@ -28,6 +51,7 @@ var animation_progress := 0.0:
 var _elapsed := 0.0
 var _state_tween: Tween
 var _texture: Texture2D = HERO_TEXTURE
+var _animation_speed := 1.0
 
 
 func _ready() -> void:
@@ -43,10 +67,25 @@ func setup(new_role: int, new_color: Color, new_symbol: String, new_definition_i
 	symbol = new_symbol
 	definition_id = new_definition_id
 	is_boss = boss
-	_texture = HERO_TEXTURE if role == Role.HERO else BOSS_TEXTURES.get(definition_id, ENEMY_TEXTURE)
+	if role == Role.HERO:
+		_texture = HERO_TEXTURE
+	elif is_boss:
+		_texture = BOSS_TEXTURES.get(definition_id, ENEMY_TEXTURE)
+	else:
+		_texture = _regular_texture(definition_id)
 	current_state = State.IDLE
 	animation_progress = 0.0
 	queue_redraw()
+
+
+func _regular_texture(enemy_id: StringName) -> Texture2D:
+	var parts := String(enemy_id).split("_", false, 1)
+	if parts.size() != 2:
+		return ENEMY_TEXTURE
+	var biome := StringName(parts[0])
+	var variant: int = REGULAR_VARIANTS.get(parts[1], 0)
+	var textures: Array = REGULAR_TEXTURES.get(biome, [])
+	return textures[variant] as Texture2D if variant < textures.size() else ENEMY_TEXTURE
 
 
 func play_state(state: State, duration := 0.18) -> void:
@@ -56,11 +95,18 @@ func play_state(state: State, duration := 0.18) -> void:
 	played_states.append(STATE_NAMES[state])
 	animation_progress = 0.0
 	_state_tween = create_tween()
+	_state_tween.set_speed_scale(_animation_speed)
 	_state_tween.tween_property(self, "animation_progress", 1.0, duration)
 	await _state_tween.finished
 	if current_state == state and state != State.DEFEAT:
 		current_state = State.IDLE
 		animation_progress = 0.0
+
+
+func set_animation_speed(speed: float) -> void:
+	_animation_speed = maxf(1.0, speed)
+	if _state_tween != null and _state_tween.is_valid():
+		_state_tween.set_speed_scale(_animation_speed)
 
 
 func supports_state(state: State) -> bool:
@@ -109,8 +155,10 @@ func _draw() -> void:
 			rotation = progress * (PI * 0.42 if role == Role.HERO else -PI * 0.42)
 			offset.y += progress * 16.0
 			tint.a = 1.0 - progress * 0.75
+	if role == Role.ENEMY:
+		sprite_scale.x *= -1.0
 	_draw_vfx(wave)
-	var target_height := minf(size.y, size.x * 1.34)
+	var target_height := minf(size.y, size.x * 1.34) * ART_SCALE
 	var target_width := target_height * 0.75
 	var rect := Rect2(Vector2(-target_width * 0.5, -target_height * 0.5), Vector2(target_width, target_height))
 	draw_set_transform(size * 0.5 + offset, rotation, sprite_scale)

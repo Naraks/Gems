@@ -35,4 +35,4 @@ func display_text() -> String:
 			Kind.SPECIAL: label = "Особое действие"
 			Kind.PREPARE: label = "Подготовка"
 	label = tr(label)
-	return tr("%s: %s") % [label, LocalizationServiceScript.format_integer(value)] if show_value else label
+	return "%s %s" % [label, LocalizationServiceScript.format_integer(value)] if show_value else label

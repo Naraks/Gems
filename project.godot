@@ -24,14 +24,14 @@ window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
-[physics]
-
-3d/physics_engine="Jolt Physics"
-
 [internationalization]
 
 locale/translations=PackedStringArray("res://localization/game.en.translation", "res://localization/game.ru.translation")
 locale/fallback="ru"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
 
 [rendering]
 

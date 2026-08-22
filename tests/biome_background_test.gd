@@ -24,7 +24,12 @@ func _run() -> void:
 		failed = _check(background.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "Biome %s disables texture smoothing" % background.biome_id) or failed
 		failed = _check(background.biome_name() in main.battle_number_label.text, "Biome name is visible for battle %d" % battle_number) or failed
 		var board_style := main.get_node("%BoardArea").get_theme_stylebox("panel") as StyleBoxFlat
-		failed = _check(board_style != null and board_style.bg_color.a >= 0.85, "Board remains readable over %s" % background.biome_name()) or failed
+		failed = _check(
+			board_style != null
+			and board_style.bg_color.a <= 0.1
+			and main.board_view.BOARD_COLOR.a >= 0.85,
+			"Background remains visible while the board stays readable over %s" % background.biome_name(),
+		) or failed
 		failed = _check(main.hero_portrait.visible and main.hero_portrait.size.x >= 44.0, "Hero portrait remains visible in the combat HUD") or failed
 		failed = _check(main.enemy_portrait.visible and main.enemy_portrait.primary_color == main._battle.enemy.definition.visual_color, "Current enemy has a data-driven portrait") or failed
 		main.queue_free()
